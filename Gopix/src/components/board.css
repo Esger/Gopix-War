@@ -30,10 +30,13 @@ a{outline:none;}
 	width:544px;
 	height:544px;
 }
+.row{
+    display: flex;
+    justify-content: space-between;
+}
 a.pix{
-	display:block;
+    display: inline-block;
 	overflow:hidden;
-	float:left;
 	width:16px;
 	height:16px;
 	background-image:url(/images/pix.gif);

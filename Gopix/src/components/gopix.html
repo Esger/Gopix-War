@@ -1,3 +1,8 @@
 <template>
-    <a repeat.for="pix of gopix" href='#' class='pix' id="+count+"></a>
+    <div class="row" repeat.for = "row of gopix">
+        <a href="#"
+            repeat.for="pix of row"
+            class.bind="pix" class="pix"
+            click.trigger="clickPix(pix)"></a>
+    </div>
 </template>

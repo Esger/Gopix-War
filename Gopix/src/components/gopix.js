@@ -10,31 +10,29 @@ export class GopixCustomElement {
         this.gopix = [];
     	// setup the board
         this.reset = function() {
-        	for (let count=1; count<1089; count++){
-                this.gopix.push('empty');
-        	}
+            for (let y = 0; y < 33; y++) {
+                this.gopix.push([]);
+                for (let x = 0; x < 33; x++) {
+                    this.gopix[y].push('empty');
+                }
+            }
+            this.gopix[11][11] = 'white';
+            this.gopix[21][21] = 'black';
         };
         this.reset();
     }
 
     // switch color
     turn(){
-        if (toplay == 'black') {
-            toplay = 'white';
-        } else {
-            toplay = 'black';
-        }
+        this.toplay = (this.toplay === 'black') ? 'white' : 'black';
     }
 
     clickPix(pix){
-		// if (($(this).hasClass('white')===false) && ($(this).hasClass('black')===false)) {
-		// 	$(this).addClass(toplay);
-		// 	board[count]=toplay;
-		// 	turn();
-		// }
+        this.turn();
+		if (pix === 'empty') {
+			pix = this.toplay;
+			this.turn();
+		}
+        console.log(pix);
 	};
-    // dislikeIngredient(ingredient, i) {
-    //     ingredient.pref = (ingredient.pref === 1)? 0 : -1;
-    //     this.ea.publish('downPreference', ingredient);
-    // }
 }
