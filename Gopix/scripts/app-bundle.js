@@ -135,11 +135,25 @@ define('components/board',['exports', 'aurelia-framework', 'aurelia-event-aggreg
 
     var _dec, _class;
 
-    var BoardCustomElement = exports.BoardCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator), _dec(_class = function BoardCustomElement(eventAggregator) {
-        _classCallCheck(this, BoardCustomElement);
+    var BoardCustomElement = exports.BoardCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator), _dec(_class = function () {
+        function BoardCustomElement(eventAggregator) {
+            var _this = this;
 
-        this.ea = eventAggregator;
-    }) || _class);
+            _classCallCheck(this, BoardCustomElement);
+
+            this.ea = eventAggregator;
+            this.player = 'white';
+            this.ea.subscribe('player', function (response) {
+                _this.player = response;
+            });
+        }
+
+        BoardCustomElement.prototype.logoClass = function logoClass() {
+            return this.player;
+        };
+
+        return BoardCustomElement;
+    }()) || _class);
 });
 define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'jquery'], function (exports, _aureliaFramework, _aureliaEventAggregator, _jquery) {
     'use strict';
@@ -172,21 +186,8 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             _classCallCheck(this, GopixCustomElement);
 
             this.pixClass = function (pix) {
-                switch (pix.cycles) {
-                    case 3:
-                        return pix.name;
-                        break;
-                    case 2:
-                        return pix.name + 'shade1';
-                        break;
-                    case 1:
-                        return pix.name + 'shade2';
-                        break;
-                    default:
-                        return 'empty';
-
-                }
-                return pix.name;
+                var classes = pix.cycles > 0 ? pix.name + ' shade' + pix.cycles : pix.name;
+                return classes;
             };
 
             this.ea = eventAggregator;
@@ -194,7 +195,6 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 _this.move(response);
             });
             this.move = function (direction) {
-
                 switch (direction) {
                     case 'LEFT':
                         this.duplicate(-1, 0);
@@ -209,8 +209,8 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                         this.duplicate(0, 1);
                         break;
                     default:
-
                 }
+                this.turn();
             };
             this.duplicate = function (dx, dy) {
                 var newPixes = [];
@@ -224,7 +224,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                             var $row = (0, _jquery2.default)((0, _jquery2.default)('.row')[y]);
                             var $pix = (0, _jquery2.default)($row.children('.pix')[x]);
 
-                            if (thisPix.cycles > 0) {
+                            if (thisPix.cycles > 3) {
                                 newPixes.push([[(x + dx + maxX) % maxX], [(y + dy + maxY) % maxY]]);
                             }
                             if (thisPix.cycles > 0) {
@@ -233,26 +233,28 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                             }
                             if (thisPix.cycles === 0) {
                                 thisPix.name === 'empty';
-                                $pix.removeClass('white black shade1 shade2 shade3').addClass('empty');
+                                $pix.removeClass('white black shade0 shade1 shade2 shade3 shade4 shade5 shade6 shade7').addClass('empty');
                             }
                         }
                     }
                 }
                 var newPix = {
                     "name": this.toplay,
-                    "cycles": 3
+                    "cycles": 7
                 };
+                console.log(this.gopix);
 
                 for (var i = 0; i < newPixes.length; i++) {
                     this.gopix[newPixes[i][1]][newPixes[i][0]] = newPix;
                     var _$row = (0, _jquery2.default)((0, _jquery2.default)('.row')[newPixes[i][1]]);
                     var _$pix = (0, _jquery2.default)(_$row.children('.pix')[newPixes[i][0]]);
-                    _$pix.removeClass('empty').addClass(this.toplay);
+                    _$pix.removeClass('empty white black').addClass(this.toplay);
                 }
             };
 
             this.turn = function () {
                 this.toplay = this.toplay === 'black' ? 'white' : 'black';
+                this.ea.publish('player', this.toplay);
             };
             this.toplay = 'white';
             this.gopix = [];
@@ -270,11 +272,11 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 }
                 this.gopix[11][11] = {
                     "name": "white",
-                    "cycles": 3
+                    "cycles": 7
                 };
                 this.gopix[21][21] = {
                     "name": "black",
-                    "cycles": 3
+                    "cycles": 7
                 };
             };
             this.reset();
@@ -286,7 +288,6 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 this.turn();
                 pix = this.toplay;
             }
-            console.log(pix);
         };
 
         return GopixCustomElement;
@@ -337,8 +338,8 @@ define('resources/binding-behaviors/keystrokes',['exports'], function (exports) 
     }();
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
-define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n\tposition:relative;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\n#logo{\n\twidth:544px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n}\n#gopix{\n\twidth:544px;\n\theight:544px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n    display: inline-block;\n\toverflow:hidden;\n\twidth:16px;\n\theight:16px;\n\tbackground-image:url(/images/pix.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-position:0 0;\n\t/*border:1px solid red;*/\n}\na.shade3{\n\topacity: .7;\n}\na.shade2{\n\topacity: .4;\n}\na.shade1{\n\topacity: .1;\n}\na.black{\n\tbackground-position:0 -32px;\n}\na.white{\n\tbackground-position:0 -16px;\n}\na.pix:hover{\n\tbackground-position:0 -16px;\n}\n"; });
-define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n\t<div id=\"container\">\n\t\t<div id=\"logo\"></div>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
+define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n\tposition:relative;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\n#logo{\n\twidth:544px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n#gopix{\n\twidth:544px;\n\theight:544px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n    display: inline-block;\n\toverflow:hidden;\n\twidth:16px;\n\theight:16px;\n\tbackground-image:url(/images/pix.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-position:0 0;\n\t/*border:1px solid red;*/\n}\na.shade7{\n\topacity: 1;\n}\na.shade6{\n\topacity: .85;\n}\na.shade5{\n\topacity: .7;\n}\na.shade4{\n\topacity: .55;\n}\na.shade3{\n\topacity: .4;\n}\na.shade2{\n\topacity: .25;\n}\na.shade1{\n\topacity: .1;\n}\na.black{\n\tbackground-position:0 -32px;\n}\na.white{\n\tbackground-position:0 -16px;\n}\na.pix:hover{\n\tbackground-position:0 -16px;\n}\n"; });
+define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n\t<div id=\"container\">\n\t\t<div id=\"logo\" class.bind=\"player\"></div>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
 define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <a href=\"#\"\n            repeat.for=\"pix of row\"\n            class.bind=\"pixClass(pix)\"\n            class=\"pix\"\n            click.trigger=\"clickPix(pix)\"></a>\n    </div>\n</template>\n"; });
 //# sourceMappingURL=app-bundle.js.map

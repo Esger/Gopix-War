@@ -26,6 +26,12 @@ a{outline:none;}
 	background-image:url(/images/logo.gif);
 	background-repeat:no-repeat;
 }
+#logo.white{
+	background-position: 0 -40px;
+}
+#logo.black{
+	background-position: 0 0;
+}
 #gopix{
 	width:544px;
 	height:544px;
@@ -44,11 +50,23 @@ a.pix{
 	background-position:0 0;
 	/*border:1px solid red;*/
 }
-a.shade3{
+a.shade7{
+	opacity: 1;
+}
+a.shade6{
+	opacity: .85;
+}
+a.shade5{
 	opacity: .7;
 }
-a.shade2{
+a.shade4{
+	opacity: .55;
+}
+a.shade3{
 	opacity: .4;
+}
+a.shade2{
+	opacity: .25;
 }
 a.shade1{
 	opacity: .1;
