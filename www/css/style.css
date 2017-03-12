@@ -1,0 +1,56 @@
+@charset "utf-8";
+/* CSS Document */
+*{
+	margin:0; border:0; padding:0;
+}
+body, html{
+	height:100%;
+	min-height:100%;
+}
+div{
+	position:absolute;
+}
+a{outline:none;}
+#container{
+	position:relative;
+	margin:0 auto;
+	width:750px;
+	height:100%;
+	min-height:100%;
+	background-color:#E3B32D;
+	overflow:hidden;
+}
+#logo{
+	left:103px;
+	top:48px;
+	width:544px;
+	height:39px;
+	background-image:url(../images/logo.gif);
+	background-repeat:no-repeat;
+}
+#gopix{
+	left:103px;
+	top:103px;
+	width:544px;
+	height:544px;
+}
+a.pix{
+	display:block;
+	overflow:hidden;
+	float:left;
+	width:16px;
+	height:16px;
+	background-image:url(../images/pix.gif);
+	background-repeat:no-repeat;
+	background-position:0 0;
+	/*border:1px solid red;*/
+}
+a.black{
+	background-position:0 -32px;
+}
+a.white{
+	background-position:0 -16px;
+}
+a.pix:hover{
+	background-position:0 -16px;
+}
