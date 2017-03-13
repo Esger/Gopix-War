@@ -1,5 +1,10 @@
-import { inject, bindable } from 'aurelia-framework';
-import { EventAggregator } from 'aurelia-event-aggregator';
+import {
+    inject,
+    bindable
+} from 'aurelia-framework';
+import {
+    EventAggregator
+} from 'aurelia-event-aggregator';
 import $ from 'jquery';
 
 @inject(EventAggregator)
@@ -9,10 +14,10 @@ export class App {
         this.ea = eventAggregator;
         this.message = 'Gopix Raiders';
         this.keys = {
-            LEFT: 37,
-            UP: 38,
-            RIGHT: 39,
-            DOWN: 40
+            'left': 37,
+            'up': 38,
+            'right': 39,
+            'down': 40
         };
     }
 
@@ -27,20 +32,20 @@ export class App {
     handleKeyInput = (event) => {
         var keycode = event.keyCode || event.which; // also for cross-browser compatible
         switch (keycode) {
-            case this.keys.LEFT:
-                this.ea.publish('keyPressed', "LEFT");
+            case this.keys.left:
+                this.ea.publish('keyPressed', "left");
                 break;
-            case this.keys.UP:
-                this.ea.publish('keyPressed', "UP");
+            case this.keys.up:
+                this.ea.publish('keyPressed', "up");
                 break;
-            case this.keys.RIGHT:
-                this.ea.publish('keyPressed', "RIGHT");
+            case this.keys.right:
+                this.ea.publish('keyPressed', "right");
                 break;
-            case this.keys.DOWN:
-                this.ea.publish('keyPressed', "DOWN");
+            case this.keys.down:
+                this.ea.publish('keyPressed', "down");
                 break;
             default:
-                this.ea.publish('keyPressed', "SOMEKEY");
+                this.ea.publish('keyPressed', "somekey");
         }
     }
 }

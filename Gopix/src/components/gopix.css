@@ -1,0 +1,50 @@
+#gopix{
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	width:527px;
+	height:527px;
+}
+.row{
+    display: flex;
+    justify-content: space-between;
+}
+a.pix{
+	width:15px;
+	height:15px;
+	border-radius: 5px;
+    border: 0px dotted red;
+    box-sizing: border-box;
+}
+a.pix.empty{
+	background-color: #3d89d9;
+}
+a.shade7{
+	opacity: 1;
+}
+a.shade6{
+	opacity: .85;
+}
+a.shade5{
+	opacity: .7;
+}
+a.shade4{
+	opacity: .55;
+}
+a.shade3{
+	opacity: .4;
+}
+a.shade2{
+	opacity: .25;
+}
+a.shade1{
+	opacity: .1;
+}
+a.black{
+	background-color: #000;
+}
+a.white{
+	background-color: #fff;
+}
+a.pix:hover{
+}

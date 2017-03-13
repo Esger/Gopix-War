@@ -31,30 +31,30 @@ define('app',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'jquer
             this.handleKeyInput = function (event) {
                 var keycode = event.keyCode || event.which;
                 switch (keycode) {
-                    case _this.keys.LEFT:
-                        _this.ea.publish('keyPressed', "LEFT");
+                    case _this.keys.left:
+                        _this.ea.publish('keyPressed', "left");
                         break;
-                    case _this.keys.UP:
-                        _this.ea.publish('keyPressed', "UP");
+                    case _this.keys.up:
+                        _this.ea.publish('keyPressed', "up");
                         break;
-                    case _this.keys.RIGHT:
-                        _this.ea.publish('keyPressed', "RIGHT");
+                    case _this.keys.right:
+                        _this.ea.publish('keyPressed', "right");
                         break;
-                    case _this.keys.DOWN:
-                        _this.ea.publish('keyPressed', "DOWN");
+                    case _this.keys.down:
+                        _this.ea.publish('keyPressed', "down");
                         break;
                     default:
-                        _this.ea.publish('keyPressed', "SOMEKEY");
+                        _this.ea.publish('keyPressed', "somekey");
                 }
             };
 
             this.ea = eventAggregator;
             this.message = 'Gopix Raiders';
             this.keys = {
-                LEFT: 37,
-                UP: 38,
-                RIGHT: 39,
-                DOWN: 40
+                'left': 37,
+                'up': 38,
+                'right': 39,
+                'down': 40
             };
         }
 
@@ -179,119 +179,142 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
 
     var _dec, _class;
 
-    var GopixCustomElement = exports.GopixCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator), _dec(_class = function () {
-        function GopixCustomElement(eventAggregator) {
-            var _this = this;
+    var GopixCustomElement = exports.GopixCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator), _dec(_class = function GopixCustomElement(eventAggregator) {
+        var _this = this;
 
-            _classCallCheck(this, GopixCustomElement);
+        _classCallCheck(this, GopixCustomElement);
 
-            this.pixClass = function (pix) {
-                var classes = pix.cycles > 0 ? pix.name + ' shade' + pix.cycles : pix.name;
-                return classes;
+        this.ea = eventAggregator;
+
+        this.ea.subscribe('keyPressed', function (response) {
+            _this.move(response);
+        });
+
+        this.toplay = 'white';
+        this.oponent = 'black';
+
+        this.maxX = 33;
+        this.maxY = 33;
+
+        this.maxStrength = 33;
+
+        this.playerStrength = {
+            'white': 3,
+            'black': 3
+        };
+
+        this.gopix = [];
+
+        this.pixStyle = function (pix) {
+            var style = "";
+            var borderWidth = Math.floor(pix.strength / 8);
+            var opacity = pix.strength / this.maxStrength;
+            var bgR, bgG, bgB;
+            switch (pix.name) {
+                case 'white':
+                    bgR = 255;
+                    bgG = 255;
+                    bgB = 255;
+                    break;
+                case 'black':
+                    bgR = 0;
+                    bgG = 0;
+                    bgB = 0;
+                    break;
+                default:
+                    bgR = 61;
+                    bgG = 137;
+                    bgB = 217;
+            }
+            style = {
+                'borderWidth': borderWidth + 'px',
+                'backgroundColor': 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + ')'
             };
+            return style;
+        };
 
-            this.ea = eventAggregator;
-            this.ea.subscribe('keyPressed', function (response) {
-                _this.move(response);
-            });
-            this.move = function (direction) {
-                switch (direction) {
-                    case 'LEFT':
-                        this.duplicate(-1, 0);
-                        break;
-                    case 'RIGHT':
-                        this.duplicate(1, 0);
-                        break;
-                    case 'UP':
-                        this.duplicate(0, -1);
-                        break;
-                    case 'DOWN':
-                        this.duplicate(0, 1);
-                        break;
-                    default:
-                }
-                this.turn();
-            };
-            this.duplicate = function (dx, dy) {
-                var newPixes = [];
-                var maxY = this.gopix.length;
-                var maxX = this.gopix[0].length;
+        this.turn = function () {
+            if (this.playerStrength[this.toplay] < this.maxStrength) {
+                this.playerStrength[this.toplay]++;
+            }
+            console.log(this.playerStrength);
 
-                for (var y = 0; y < maxY; y++) {
-                    for (var x = 0; x < maxX; x++) {
-                        var thisPix = this.gopix[y][x];
-                        if (thisPix.name === this.toplay) {
-                            var $row = (0, _jquery2.default)((0, _jquery2.default)('.row')[y]);
-                            var $pix = (0, _jquery2.default)($row.children('.pix')[x]);
+            var temp = this.oponent;
+            this.oponent = this.toplay;
+            this.toplay = temp;
+            this.ea.publish('player', this.toplay);
+        };
 
-                            if (thisPix.cycles > 3) {
-                                newPixes.push([[(x + dx + maxX) % maxX], [(y + dy + maxY) % maxY]]);
+        this.move = function (direction) {
+            switch (direction) {
+                case 'left':
+                    this.step(-1, 0);
+                    break;
+                case 'right':
+                    this.step(1, 0);
+                    break;
+                case 'up':
+                    this.step(0, -1);
+                    break;
+                case 'down':
+                    this.step(0, 1);
+                    break;
+                default:
+            }
+            this.turn();
+        };
+
+        this.getNewPixes = function (dx, dy) {
+            var newPixes = [];
+            for (var y = 0; y < this.maxY; y++) {
+                for (var x = 0; x < this.maxX; x++) {
+                    var thisPix = this.gopix[y][x];
+                    if (thisPix.name === this.toplay) {
+                        if (thisPix.strength > this.playerStrength[this.toplay] / 4) {
+                            var newX = (x + dx + this.maxX) % this.maxX;
+                            var newY = (y + dy + this.maxY) % this.maxY;
+                            var newPix = [newX, newY];
+                            if (this.gopix[newY][newX].name == 'empty') {
+                                newPixes.push([newPix]);
                             }
-                            if (thisPix.cycles > 0) {
-                                thisPix.cycles--;
-                                $pix.addClass('shade' + thisPix.cycles);
-                            }
-                            if (thisPix.cycles === 0) {
-                                thisPix.name === 'empty';
-                                $pix.removeClass('white black shade0 shade1 shade2 shade3 shade4 shade5 shade6 shade7').addClass('empty');
+                            if (this.gopix[newY][newX].name == this.oponent && this.gopix[newY][newX].strength < thisPix.strength) {
+                                newPixes.push([newPix]);
                             }
                         }
                     }
                 }
-                var newPix = {
-                    "name": this.toplay,
-                    "cycles": 7
-                };
-                console.log(this.gopix);
-
-                for (var i = 0; i < newPixes.length; i++) {
-                    this.gopix[newPixes[i][1]][newPixes[i][0]] = newPix;
-                    var _$row = (0, _jquery2.default)((0, _jquery2.default)('.row')[newPixes[i][1]]);
-                    var _$pix = (0, _jquery2.default)(_$row.children('.pix')[newPixes[i][0]]);
-                    _$pix.removeClass('empty white black').addClass(this.toplay);
-                }
-            };
-
-            this.turn = function () {
-                this.toplay = this.toplay === 'black' ? 'white' : 'black';
-                this.ea.publish('player', this.toplay);
-            };
-            this.toplay = 'white';
-            this.gopix = [];
-
-            this.reset = function () {
-                var newPix = {
-                    "name": "empty",
-                    "cycles": 0
-                };
-                for (var y = 0; y < 33; y++) {
-                    this.gopix.push([]);
-                    for (var x = 0; x < 33; x++) {
-                        this.gopix[y].push(newPix);
-                    }
-                }
-                this.gopix[11][11] = {
-                    "name": "white",
-                    "cycles": 7
-                };
-                this.gopix[21][21] = {
-                    "name": "black",
-                    "cycles": 7
-                };
-            };
-            this.reset();
-        }
-
-        GopixCustomElement.prototype.clickPix = function clickPix(pix) {
-            this.turn();
-            if (pix === 'empty') {
-                this.turn();
-                pix = this.toplay;
             }
+            return newPixes;
         };
 
-        return GopixCustomElement;
-    }()) || _class);
+        this.step = function (dx, dy) {
+            var newPixes = this.getNewPixes(dx, dy);
+            console.log(newPixes);
+        };
+
+        this.reset = function () {
+            var newPix = {
+                "name": "empty",
+                "strength": 0
+            };
+            for (var y = 0; y < this.maxX; y++) {
+                this.gopix.push([]);
+                for (var x = 0; x < this.maxY; x++) {
+                    this.gopix[y].push(newPix);
+                }
+            }
+            this.gopix[11][11] = {
+                "name": "white",
+                "strength": 7
+            };
+            this.gopix[21][21] = {
+                "name": "black",
+                "strength": 7
+            };
+        };
+
+        this.reset();
+    }) || _class);
 });
 define('resources/index',["exports"], function (exports) {
   "use strict";
@@ -338,8 +361,9 @@ define('resources/binding-behaviors/keystrokes',['exports'], function (exports) 
     }();
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
-define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n\tposition:relative;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\n#logo{\n\twidth:544px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n#gopix{\n\twidth:544px;\n\theight:544px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n    display: inline-block;\n\toverflow:hidden;\n\twidth:16px;\n\theight:16px;\n\tbackground-image:url(/images/pix.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-position:0 0;\n\t/*border:1px solid red;*/\n}\na.shade7{\n\topacity: 1;\n}\na.shade6{\n\topacity: .85;\n}\na.shade5{\n\topacity: .7;\n}\na.shade4{\n\topacity: .55;\n}\na.shade3{\n\topacity: .4;\n}\na.shade2{\n\topacity: .25;\n}\na.shade1{\n\topacity: .1;\n}\na.black{\n\tbackground-position:0 -32px;\n}\na.white{\n\tbackground-position:0 -16px;\n}\na.pix:hover{\n\tbackground-position:0 -16px;\n}\n"; });
+define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tposition:relative;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\n#logo{\n\twidth:527px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-size: cover;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n"; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n\t<div id=\"container\">\n\t\t<div id=\"logo\" class.bind=\"player\"></div>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
-define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <a href=\"#\"\n            repeat.for=\"pix of row\"\n            class.bind=\"pixClass(pix)\"\n            class=\"pix\"\n            click.trigger=\"clickPix(pix)\"></a>\n    </div>\n</template>\n"; });
+define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <a href=\"#\"\n            repeat.for=\"pix of row\"\n            class.bind=\"pix.name\"\n            class=\"pix\"\n            data-strength.bind=\"pix.strength\"></a>\n    </div>\n</template>\n"; });
+define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix{\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n\twidth:527px;\n\theight:527px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n\twidth:15px;\n\theight:15px;\n\tborder-radius: 5px;\n    border: 0px dotted red;\n    box-sizing: border-box;\n}\na.pix.empty{\n\tbackground-color: #3d89d9;\n}\na.shade7{\n\topacity: 1;\n}\na.shade6{\n\topacity: .85;\n}\na.shade5{\n\topacity: .7;\n}\na.shade4{\n\topacity: .55;\n}\na.shade3{\n\topacity: .4;\n}\na.shade2{\n\topacity: .25;\n}\na.shade1{\n\topacity: .1;\n}\na.black{\n\tbackground-color: #000;\n}\na.white{\n\tbackground-color: #fff;\n}\na.pix:hover{\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

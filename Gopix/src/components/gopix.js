@@ -11,118 +11,187 @@ import $ from 'jquery';
 export class GopixCustomElement {
 
     constructor(eventAggregator) {
+
         this.ea = eventAggregator;
+
         this.ea.subscribe('keyPressed', response => {
             this.move(response);
         });
+
+        this.toplay = 'white';
+        this.oponent = 'black';
+
+        this.maxX = 33;
+        this.maxY = 33;
+
+        this.maxStrength = 33;
+
+        this.playerStrength = {
+            'white': 3,
+            'black': 3
+        }
+
+        this.gopix = [];
+
+        this.pixStyle = function(pix) {
+            let style = "";
+            let borderWidth = Math.floor(pix.strength / 8);
+            let opacity = pix.strength / this.maxStrength;
+            var bgR, bgG, bgB;
+            switch (pix.name) {
+                case 'white':
+                    bgR = 255;
+                    bgG = 255;
+                    bgB = 255;
+                    break;
+                case 'black':
+                    bgR = 0;
+                    bgG = 0;
+                    bgB = 0;
+                    break;
+                default:
+                    bgR = 61;
+                    bgG = 137;
+                    bgB = 217;
+            }
+            style = {
+                'borderWidth': borderWidth + 'px',
+                'backgroundColor': 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + ')'
+            }
+            return style;
+        }
+
+        this.turn = function() {
+            if (this.playerStrength[this.toplay] < this.maxStrength) {
+                this.playerStrength[this.toplay]++
+            }
+            console.log(this.playerStrength);
+            // switch color
+            let temp = this.oponent;
+            this.oponent = this.toplay;
+            this.toplay = temp;
+            this.ea.publish('player', this.toplay);
+        }
+
         this.move = function(direction) {
             switch (direction) {
-                case 'LEFT':
-                    this.duplicate(-1, 0);
+                case 'left':
+                    this.step(-1, 0);
                     break;
-                case 'RIGHT':
-                    this.duplicate(1, 0);
+                case 'right':
+                    this.step(1, 0);
                     break;
-                case 'UP':
-                    this.duplicate(0, -1);
+                case 'up':
+                    this.step(0, -1);
                     break;
-                case 'DOWN':
-                    this.duplicate(0, 1);
+                case 'down':
+                    this.step(0, 1);
                     break;
                 default:
             }
             this.turn();
         }
-        this.duplicate = function(dx, dy) {
+
+        this.getNewPixes = function(dx, dy) {
             let newPixes = [];
-            let maxY = this.gopix.length;
-            let maxX = this.gopix[0].length;
-            // let currentColorPixes = [];
-            // Gather pixes of current color with cycles = 3
-            for (let y = 0; y < maxY; y++) {
-                for (let x = 0; x < maxX; x++) {
+            for (let y = 0; y < this.maxY; y++) {
+                for (let x = 0; x < this.maxX; x++) {
                     let thisPix = this.gopix[y][x];
                     if (thisPix.name === this.toplay) {
-                        // currentColorPixes.push(thisPix);
-                        let $row = $($('.row')[y]);
-                        let $pix = $($row.children('.pix')[x]);
-
-                        if (thisPix.cycles > 3) {
-                            newPixes.push([
-                                [(x + dx + maxX) % maxX],
-                                [(y + dy + maxY) % maxY]
-                            ]);
-                        }
-                        if (thisPix.cycles > 0) {
-                            thisPix.cycles--;
-                            $pix.addClass('shade'+thisPix.cycles);
-                        }
-                        if (thisPix.cycles === 0) {
-                            thisPix.name === 'empty';
-                            $pix.removeClass('white black shade0 shade1 shade2 shade3 shade4 shade5 shade6 shade7').addClass('empty');
+                        if (thisPix.strength > this.playerStrength[this.toplay] / 4) {
+                            let newX = (x + dx + this.maxX) % this.maxX;
+                            let newY = (y + dy + this.maxY) % this.maxY;
+                            let newPix = [newX,newY];
+                            if (this.gopix[newY][newX].name == 'empty') {
+                                newPixes.push([newPix]);
+                            }
+                            if ((this.gopix[newY][newX].name == this.oponent) &&
+                                (this.gopix[newY][newX].strength < thisPix.strength)) {
+                                newPixes.push([newPix]);
+                            }
                         }
                     }
                 }
             }
-            let newPix = {
-                "name": this.toplay,
-                "cycles": 7
-            }
-            console.log(this.gopix);
-            // Fade existing pixes
-            // for (var i = 0; i < currentColorPixes.length; i++) {
-            //     currentColorPixes[i]
+            return newPixes;
+        }
+
+        this.step = function(dx, dy) {
+            let newPixes = this.getNewPixes(dx, dy);
+            console.log(newPixes);
+            // this.weakenPixes();
+            // this.drawNewPixes(newPixes);
+
+            // Gather pixes of current color with strength = 3
+            // for (let y = 0; y < this.maxY; y++) {
+            //     for (let x = 0; x < this.maxX; x++) {
+            //         let thisPix = this.gopix[y][x];
+            //         let $row = $($('.row')[y]);
+            //         let $pix = $($row.children('.pix')[x]);
+            //         if (thisPix.name === this.toplay) {
+            //             if (thisPix.strength > this.playerStrength[this.toplay] / 2) {
+            //                 newPixes.push([
+            //                     [(x + dx + maxX) % maxX],
+            //                     [(y + dy + maxY) % maxY]
+            //                 ]);
+            //             }
+            //             if (thisPix.strength > 0) {
+            //                 thisPix.strength--;
+            //             }
+            //             if (thisPix.strength === 0) {
+            //                 thisPix.name === 'empty';
+            //                 $pix.removeClass('white black').addClass('empty');
+            //                 $pix.css(this.pixStyle(thisPix));
+            //             }
+            //         } else {
+            //             $pix.css(this.pixStyle(thisPix));
+            //         }
+            //
+            //     }
             // }
-            // Apply new pixes
-            for (var i = 0; i < newPixes.length; i++) {
-                this.gopix[newPixes[i][1]][newPixes[i][0]] = newPix;
-                let $row = $($('.row')[newPixes[i][1]]);
-                let $pix = $($row.children('.pix')[newPixes[i][0]]);
-                $pix.removeClass('empty white black').addClass(this.toplay);
-            }
+            // let newPix = {
+            //     "name": this.toplay,
+            //     "strength": this.playerStrength[this.toplay]
+            // }
+            // for (var i = 0; i < newPixes.length; i++) {
+            //     this.gopix[newPixes[i][1]][newPixes[i][0]] = newPix;
+            //     let $row = $($('.row')[newPixes[i][1]]);
+            //     let $pix = $($row.children('.pix')[newPixes[i][0]]);
+            //     $pix.removeClass('empty white black').addClass(this.toplay);
+            //     $pix.css(this.pixStyle(newPix));
+            // }
         }
-        // switch color
-        this.turn = function() {
-            this.toplay = (this.toplay === 'black') ? 'white' : 'black';
-            this.ea.publish('player', this.toplay);
-        }
-        this.toplay = 'white';
-        this.gopix = [];
+
         // setup the board
         this.reset = function() {
             let newPix = {
                 "name": "empty",
-                "cycles": 0
+                "strength": 0
             }
-            for (let y = 0; y < 33; y++) {
+            for (let y = 0; y < this.maxX; y++) {
                 this.gopix.push([]);
-                for (let x = 0; x < 33; x++) {
+                for (let x = 0; x < this.maxY; x++) {
                     this.gopix[y].push(newPix);
                 }
             }
             this.gopix[11][11] = {
                 "name": "white",
-                "cycles": 7
+                "strength": 7
             };
             this.gopix[21][21] = {
                 "name": "black",
-                "cycles": 7
+                "strength": 7
             };
         };
+
         this.reset();
     }
 
-    pixClass = function(pix) {
-        let classes = (pix.cycles > 0) ? pix.name + ' shade' + pix.cycles : pix.name;
-        return classes;
-    }
-
-    clickPix(pix) {
-        this.turn();
-        if (pix === 'empty') {
-            this.turn();
-            pix = this.toplay;
-        }
-        // console.log(pix);
-    };
+    // pixClass = function(pix) {
+    //     return pix.name;
+    // }
+    //
+    // pixStyle = function(pix) {
+    //     this.pixStyle(pix);
+    // }
 }
