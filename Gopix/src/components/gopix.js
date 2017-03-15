@@ -53,11 +53,17 @@ export class GopixCustomElement {
                     bgR = 61;
                     bgG = 137;
                     bgB = 217;
+                    opacity = 1;
             }
             style = {
-                'borderWidth': borderWidth + 'px',
-                'backgroundColor': 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + ')'
+                'background' : 'linear-gradient(' +
+                    'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + '),' +
+                    'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + ')' +
+                '),' +
+                'url(/images/pix.gif)',
+                'borderWidth': borderWidth + 'px'
             }
+            // console.log(style);
             return style;
         }
 
@@ -103,11 +109,11 @@ export class GopixCustomElement {
                             let newY = (y + dy + this.maxY) % this.maxY;
                             let newPix = [newX,newY];
                             if (this.gopix[newY][newX].name == 'empty') {
-                                newPixes.push([newPix]);
+                                newPixes.push(newPix);
                             }
                             if ((this.gopix[newY][newX].name == this.oponent) &&
                                 (this.gopix[newY][newX].strength < thisPix.strength)) {
-                                newPixes.push([newPix]);
+                                newPixes.push(newPix);
                             }
                         }
                     }
@@ -116,50 +122,46 @@ export class GopixCustomElement {
             return newPixes;
         }
 
+        this.weakenPixes = function() {
+            for (let y = 0; y < this.maxY; y++) {
+                for (let x = 0; x < this.maxX; x++) {
+                    let thisPix = this.gopix[y][x];
+                    if (thisPix.name !== this.oponent) {
+                        let $row = $($('.row')[y]);
+                        let $pix = $($row.children('.pix')[x]);
+                        if (thisPix.strength > 0) {
+                            thisPix.strength--;
+                            $pix.removeClass('empty white black').addClass(this.toplay);
+                            $pix.css(this.pixStyle(thisPix));
+                        } else {
+                            thisPix.name = 'empty';
+                            $pix.removeClass('white black').addClass('empty');
+                            $pix.css(this.pixStyle(thisPix));
+                        }
+                    }
+                }
+            }
+        }
+
+        this.drawNewPixes = function(newPixes){
+            let newPix = {
+                "name": this.toplay,
+                "strength": this.playerStrength[this.toplay]
+            }
+            for (var i = 0; i < newPixes.length; i++) {
+                this.gopix[newPixes[i][1]][newPixes[i][0]] = newPix;
+                let $row = $($('.row')[newPixes[i][1]]);
+                let $pix = $($row.children('.pix')[newPixes[i][0]]);
+                $pix.removeClass('empty white black').addClass(this.toplay);
+                $pix.css(this.pixStyle(newPix));
+            }
+        }
+
         this.step = function(dx, dy) {
             let newPixes = this.getNewPixes(dx, dy);
             console.log(newPixes);
-            // this.weakenPixes();
-            // this.drawNewPixes(newPixes);
-
-            // Gather pixes of current color with strength = 3
-            // for (let y = 0; y < this.maxY; y++) {
-            //     for (let x = 0; x < this.maxX; x++) {
-            //         let thisPix = this.gopix[y][x];
-            //         let $row = $($('.row')[y]);
-            //         let $pix = $($row.children('.pix')[x]);
-            //         if (thisPix.name === this.toplay) {
-            //             if (thisPix.strength > this.playerStrength[this.toplay] / 2) {
-            //                 newPixes.push([
-            //                     [(x + dx + maxX) % maxX],
-            //                     [(y + dy + maxY) % maxY]
-            //                 ]);
-            //             }
-            //             if (thisPix.strength > 0) {
-            //                 thisPix.strength--;
-            //             }
-            //             if (thisPix.strength === 0) {
-            //                 thisPix.name === 'empty';
-            //                 $pix.removeClass('white black').addClass('empty');
-            //                 $pix.css(this.pixStyle(thisPix));
-            //             }
-            //         } else {
-            //             $pix.css(this.pixStyle(thisPix));
-            //         }
-            //
-            //     }
-            // }
-            // let newPix = {
-            //     "name": this.toplay,
-            //     "strength": this.playerStrength[this.toplay]
-            // }
-            // for (var i = 0; i < newPixes.length; i++) {
-            //     this.gopix[newPixes[i][1]][newPixes[i][0]] = newPix;
-            //     let $row = $($('.row')[newPixes[i][1]]);
-            //     let $pix = $($row.children('.pix')[newPixes[i][0]]);
-            //     $pix.removeClass('empty white black').addClass(this.toplay);
-            //     $pix.css(this.pixStyle(newPix));
-            // }
+            this.weakenPixes();
+            this.drawNewPixes(newPixes);
         }
 
         // setup the board
@@ -176,11 +178,11 @@ export class GopixCustomElement {
             }
             this.gopix[11][11] = {
                 "name": "white",
-                "strength": 7
+                "strength": this.playerStrength['white']
             };
             this.gopix[21][21] = {
                 "name": "black",
-                "strength": 7
+                "strength": this.playerStrength['black']
             };
         };
 

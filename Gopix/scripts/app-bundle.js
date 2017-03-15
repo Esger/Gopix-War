@@ -155,6 +155,50 @@ define('components/board',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         return BoardCustomElement;
     }()) || _class);
 });
+define('resources/index',["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.configure = configure;
+  function configure(config) {}
+});
+define('resources/binding-behaviors/keystrokes',['exports'], function (exports) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var Keystrokes = exports.Keystrokes = function () {
+        function Keystrokes() {
+            _classCallCheck(this, Keystrokes);
+
+            this.myKeypressCallback = this.keypressInput.bind(this);
+        }
+
+        Keystrokes.prototype.activate = function activate() {
+            window.addEventListener('keypress', this.myKeypressCallback, false);
+        };
+
+        Keystrokes.prototype.deactivate = function deactivate() {
+            window.removeEventListener('keypress', this.myKeypressCallback);
+        };
+
+        Keystrokes.prototype.keypressInput = function keypressInput(e) {
+            console.log(e);
+        };
+
+        return Keystrokes;
+    }();
+});
 define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'jquery'], function (exports, _aureliaFramework, _aureliaEventAggregator, _jquery) {
     'use strict';
 
@@ -225,11 +269,13 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     bgR = 61;
                     bgG = 137;
                     bgB = 217;
+                    opacity = 1;
             }
             style = {
-                'borderWidth': borderWidth + 'px',
-                'backgroundColor': 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + ')'
+                'background': 'linear-gradient(' + 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + '),' + 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + ')' + '),' + 'url(/images/pix.gif)',
+                'borderWidth': borderWidth + 'px'
             };
+
             return style;
         };
 
@@ -275,10 +321,10 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                             var newY = (y + dy + this.maxY) % this.maxY;
                             var newPix = [newX, newY];
                             if (this.gopix[newY][newX].name == 'empty') {
-                                newPixes.push([newPix]);
+                                newPixes.push(newPix);
                             }
                             if (this.gopix[newY][newX].name == this.oponent && this.gopix[newY][newX].strength < thisPix.strength) {
-                                newPixes.push([newPix]);
+                                newPixes.push(newPix);
                             }
                         }
                     }
@@ -287,9 +333,46 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             return newPixes;
         };
 
+        this.weakenPixes = function () {
+            for (var y = 0; y < this.maxY; y++) {
+                for (var x = 0; x < this.maxX; x++) {
+                    var thisPix = this.gopix[y][x];
+                    if (thisPix.name !== this.oponent) {
+                        var $row = (0, _jquery2.default)((0, _jquery2.default)('.row')[y]);
+                        var $pix = (0, _jquery2.default)($row.children('.pix')[x]);
+                        if (thisPix.strength > 0) {
+                            thisPix.strength--;
+                            $pix.removeClass('empty white black').addClass(this.toplay);
+                            $pix.css(this.pixStyle(thisPix));
+                        } else {
+                            thisPix.name = 'empty';
+                            $pix.removeClass('white black').addClass('empty');
+                            $pix.css(this.pixStyle(thisPix));
+                        }
+                    }
+                }
+            }
+        };
+
+        this.drawNewPixes = function (newPixes) {
+            var newPix = {
+                "name": this.toplay,
+                "strength": this.playerStrength[this.toplay]
+            };
+            for (var i = 0; i < newPixes.length; i++) {
+                this.gopix[newPixes[i][1]][newPixes[i][0]] = newPix;
+                var $row = (0, _jquery2.default)((0, _jquery2.default)('.row')[newPixes[i][1]]);
+                var $pix = (0, _jquery2.default)($row.children('.pix')[newPixes[i][0]]);
+                $pix.removeClass('empty white black').addClass(this.toplay);
+                $pix.css(this.pixStyle(newPix));
+            }
+        };
+
         this.step = function (dx, dy) {
             var newPixes = this.getNewPixes(dx, dy);
             console.log(newPixes);
+            this.weakenPixes();
+            this.drawNewPixes(newPixes);
         };
 
         this.reset = function () {
@@ -305,65 +388,21 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             }
             this.gopix[11][11] = {
                 "name": "white",
-                "strength": 7
+                "strength": this.playerStrength['white']
             };
             this.gopix[21][21] = {
                 "name": "black",
-                "strength": 7
+                "strength": this.playerStrength['black']
             };
         };
 
         this.reset();
     }) || _class);
 });
-define('resources/index',["exports"], function (exports) {
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.configure = configure;
-  function configure(config) {}
-});
-define('resources/binding-behaviors/keystrokes',['exports'], function (exports) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var Keystrokes = exports.Keystrokes = function () {
-        function Keystrokes() {
-            _classCallCheck(this, Keystrokes);
-
-            this.myKeypressCallback = this.keypressInput.bind(this);
-        }
-
-        Keystrokes.prototype.activate = function activate() {
-            window.addEventListener('keypress', this.myKeypressCallback, false);
-        };
-
-        Keystrokes.prototype.deactivate = function deactivate() {
-            window.removeEventListener('keypress', this.myKeypressCallback);
-        };
-
-        Keystrokes.prototype.keypressInput = function keypressInput(e) {
-            console.log(e);
-        };
-
-        return Keystrokes;
-    }();
-});
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tposition:relative;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\n#logo{\n\twidth:527px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-size: cover;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n"; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n\t<div id=\"container\">\n\t\t<div id=\"logo\" class.bind=\"player\"></div>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
 define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <a href=\"#\"\n            repeat.for=\"pix of row\"\n            class.bind=\"pix.name\"\n            class=\"pix\"\n            data-strength.bind=\"pix.strength\"></a>\n    </div>\n</template>\n"; });
-define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix{\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n\twidth:527px;\n\theight:527px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n\twidth:15px;\n\theight:15px;\n\tborder-radius: 5px;\n    border: 0px dotted red;\n    box-sizing: border-box;\n}\na.pix.empty{\n\tbackground-color: #3d89d9;\n}\na.shade7{\n\topacity: 1;\n}\na.shade6{\n\topacity: .85;\n}\na.shade5{\n\topacity: .7;\n}\na.shade4{\n\topacity: .55;\n}\na.shade3{\n\topacity: .4;\n}\na.shade2{\n\topacity: .25;\n}\na.shade1{\n\topacity: .1;\n}\na.black{\n\tbackground-color: #000;\n}\na.white{\n\tbackground-color: #fff;\n}\na.pix:hover{\n}\n"; });
+define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix{\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n\twidth:527px;\n\theight:527px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n\twidth:15px;\n\theight:15px;\n\tborder-radius: 3px;\n    border: 0px solid transparent;\n    box-sizing: border-box;\n}\na.pix.empty{\n\tbackground-color: #3d89d9;\n}\na.black{\n\tbackground-color: #000;\n    border-color: #fff;\n}\na.white{\n\tbackground-color: #fff;\n    border-color: #000;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map
