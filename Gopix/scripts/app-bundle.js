@@ -237,14 +237,14 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         this.toplay = 'white';
         this.oponent = 'black';
 
-        this.maxX = 33;
-        this.maxY = 33;
+        this.maxX = 22;
+        this.maxY = 22;
 
-        this.maxStrength = 33;
+        this.maxStrength = 25;
 
         this.playerStrength = {
-            'white': 3,
-            'black': 3
+            'white': 8,
+            'black': 8
         };
 
         this.gopix = [];
@@ -272,7 +272,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     opacity = 1;
             }
             style = {
-                'background': 'linear-gradient(' + 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + '),' + 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + ')' + '),' + 'url(/images/pix.gif)',
+                'background': 'linear-gradient(' + 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + '),' + 'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + ')' + '),' + 'url(/images/bgBlauw.gif)',
                 'borderWidth': borderWidth + 'px'
             };
 
@@ -307,24 +307,29 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     break;
                 default:
             }
-            this.turn();
         };
 
         this.getNewPixes = function (dx, dy) {
             var newPixes = [];
+            var abortMove = false;
             for (var y = 0; y < this.maxY; y++) {
                 for (var x = 0; x < this.maxX; x++) {
                     var thisPix = this.gopix[y][x];
                     if (thisPix.name === this.toplay) {
                         if (thisPix.strength > this.playerStrength[this.toplay] / 4) {
-                            var newX = (x + dx + this.maxX) % this.maxX;
-                            var newY = (y + dy + this.maxY) % this.maxY;
-                            var newPix = [newX, newY];
-                            if (this.gopix[newY][newX].name == 'empty') {
-                                newPixes.push(newPix);
-                            }
-                            if (this.gopix[newY][newX].name == this.oponent && this.gopix[newY][newX].strength < thisPix.strength) {
-                                newPixes.push(newPix);
+                            var newX = x + dx;
+                            var newY = y + dy;
+                            if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
+                                var newPix = [newX, newY];
+                                if (this.gopix[newY][newX].name == 'empty') {
+                                    newPixes.push(newPix);
+                                } else {
+                                    if (this.gopix[newY][newX].name == this.oponent) {
+                                        if (this.gopix[newY][newX].strength < thisPix.strength) {
+                                            newPixes.push(newPix);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -371,8 +376,13 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         this.step = function (dx, dy) {
             var newPixes = this.getNewPixes(dx, dy);
             console.log(newPixes);
-            this.weakenPixes();
-            this.drawNewPixes(newPixes);
+            if (newPixes.length) {
+                this.weakenPixes();
+                this.drawNewPixes(newPixes);
+                this.turn();
+            } else {
+                console.log('illegal move');
+            }
         };
 
         this.reset = function () {
@@ -386,11 +396,11 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     this.gopix[y].push(newPix);
                 }
             }
-            this.gopix[11][11] = {
+            this.gopix[7][7] = {
                 "name": "white",
                 "strength": this.playerStrength['white']
             };
-            this.gopix[21][21] = {
+            this.gopix[14][14] = {
                 "name": "black",
                 "strength": this.playerStrength['black']
             };
@@ -404,5 +414,5 @@ define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tma
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n\t<div id=\"container\">\n\t\t<div id=\"logo\" class.bind=\"player\"></div>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
 define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <a href=\"#\"\n            repeat.for=\"pix of row\"\n            class.bind=\"pix.name\"\n            class=\"pix\"\n            data-strength.bind=\"pix.strength\"></a>\n    </div>\n</template>\n"; });
-define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix{\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n\twidth:527px;\n\theight:527px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n\twidth:15px;\n\theight:15px;\n\tborder-radius: 3px;\n    border: 0px solid transparent;\n    box-sizing: border-box;\n}\na.pix.empty{\n\tbackground-color: #3d89d9;\n}\na.black{\n\tbackground-color: #000;\n    border-color: #fff;\n}\na.white{\n\tbackground-color: #fff;\n    border-color: #000;\n}\n"; });
+define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix{\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n\twidth:527px;\n\theight:527px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n\twidth:23px;\n\theight:23px;\n\tborder-radius: 3px;\n    border: 0px solid transparent;\n    box-sizing: border-box;\n    background-position: center center;\n}\na.pix.empty{\n\tbackground-color: #3d89d9;\n}\na.black{\n\tbackground-color: #000;\n    border-color: #888;\n}\na.white{\n\tbackground-color: #fff;\n    border-color: #888;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map

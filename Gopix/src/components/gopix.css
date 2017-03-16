@@ -10,20 +10,21 @@
     justify-content: space-between;
 }
 a.pix{
-	width:15px;
-	height:15px;
+	width:23px;
+	height:23px;
 	border-radius: 3px;
     border: 0px solid transparent;
     box-sizing: border-box;
+    background-position: center center;
 }
 a.pix.empty{
 	background-color: #3d89d9;
 }
 a.black{
 	background-color: #000;
-    border-color: #fff;
+    border-color: #888;
 }
 a.white{
 	background-color: #fff;
-    border-color: #000;
+    border-color: #888;
 }

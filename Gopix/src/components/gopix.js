@@ -21,14 +21,14 @@ export class GopixCustomElement {
         this.toplay = 'white';
         this.oponent = 'black';
 
-        this.maxX = 33;
-        this.maxY = 33;
+        this.maxX = 22;
+        this.maxY = 22;
 
-        this.maxStrength = 33;
+        this.maxStrength = 25;
 
         this.playerStrength = {
-            'white': 3,
-            'black': 3
+            'white': 8,
+            'black': 8
         }
 
         this.gopix = [];
@@ -60,7 +60,7 @@ export class GopixCustomElement {
                     'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + '),' +
                     'rgba(' + bgR + ', ' + bgG + ', ' + bgB + ', ' + opacity + ')' +
                 '),' +
-                'url(/images/pix.gif)',
+                'url(/images/bgBlauw.gif)',
                 'borderWidth': borderWidth + 'px'
             }
             // console.log(style);
@@ -95,25 +95,29 @@ export class GopixCustomElement {
                     break;
                 default:
             }
-            this.turn();
         }
 
         this.getNewPixes = function(dx, dy) {
             let newPixes = [];
+            let abortMove = false;
             for (let y = 0; y < this.maxY; y++) {
                 for (let x = 0; x < this.maxX; x++) {
                     let thisPix = this.gopix[y][x];
                     if (thisPix.name === this.toplay) {
                         if (thisPix.strength > this.playerStrength[this.toplay] / 4) {
-                            let newX = (x + dx + this.maxX) % this.maxX;
-                            let newY = (y + dy + this.maxY) % this.maxY;
-                            let newPix = [newX,newY];
-                            if (this.gopix[newY][newX].name == 'empty') {
-                                newPixes.push(newPix);
-                            }
-                            if ((this.gopix[newY][newX].name == this.oponent) &&
-                                (this.gopix[newY][newX].strength < thisPix.strength)) {
-                                newPixes.push(newPix);
+                            let newX = x + dx;
+                            let newY = y + dy;
+                            if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
+                                let newPix = [newX,newY];
+                                if (this.gopix[newY][newX].name == 'empty') {
+                                    newPixes.push(newPix);
+                                } else {
+                                    if (this.gopix[newY][newX].name == this.oponent) {
+                                        if (this.gopix[newY][newX].strength < thisPix.strength) {
+                                            newPixes.push(newPix);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -160,8 +164,13 @@ export class GopixCustomElement {
         this.step = function(dx, dy) {
             let newPixes = this.getNewPixes(dx, dy);
             console.log(newPixes);
-            this.weakenPixes();
-            this.drawNewPixes(newPixes);
+            if (newPixes.length) {
+                this.weakenPixes();
+                this.drawNewPixes(newPixes);
+                this.turn();
+            } else {
+                console.log('illegal move');
+            }
         }
 
         // setup the board
@@ -176,11 +185,11 @@ export class GopixCustomElement {
                     this.gopix[y].push(newPix);
                 }
             }
-            this.gopix[11][11] = {
+            this.gopix[7][7] = {
                 "name": "white",
                 "strength": this.playerStrength['white']
             };
-            this.gopix[21][21] = {
+            this.gopix[14][14] = {
                 "name": "black",
                 "strength": this.playerStrength['black']
             };
