@@ -19,6 +19,9 @@ a{outline:none;}
 	background-color:#E3B32D;
 	overflow:hidden;
 }
+header{
+	display: block;
+}
 #logo{
 	width:527px;
 	height:39px;

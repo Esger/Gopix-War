@@ -1,0 +1,25 @@
+.titleBar{
+    width: 527px;
+    height: 39px;
+    margin: 20px 0;
+    display: flex;
+}
+.pixelCol{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.pixelCol + .pixelCol{
+    margin-left: 1px;
+}
+.pixel{
+    width: 7px;
+    height: 7px;
+    border-radius: 4px;
+}
+.pixel.on{
+    background-color: #fff;
+}
+.pixel.off{
+    background-color: transparent;
+}

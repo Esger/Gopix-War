@@ -155,50 +155,6 @@ define('components/board',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         return BoardCustomElement;
     }()) || _class);
 });
-define('resources/index',["exports"], function (exports) {
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.configure = configure;
-  function configure(config) {}
-});
-define('resources/binding-behaviors/keystrokes',['exports'], function (exports) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    var Keystrokes = exports.Keystrokes = function () {
-        function Keystrokes() {
-            _classCallCheck(this, Keystrokes);
-
-            this.myKeypressCallback = this.keypressInput.bind(this);
-        }
-
-        Keystrokes.prototype.activate = function activate() {
-            window.addEventListener('keypress', this.myKeypressCallback, false);
-        };
-
-        Keystrokes.prototype.deactivate = function deactivate() {
-            window.removeEventListener('keypress', this.myKeypressCallback);
-        };
-
-        Keystrokes.prototype.keypressInput = function keypressInput(e) {
-            console.log(e);
-        };
-
-        return Keystrokes;
-    }();
-});
 define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'jquery'], function (exports, _aureliaFramework, _aureliaEventAggregator, _jquery) {
     'use strict';
 
@@ -401,15 +357,197 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         return GopixCustomElement;
     }()) || _class);
 });
-define('components/header',[], function () {
+define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggregator'], function (exports, _aureliaFramework, _aureliaEventAggregator) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.HeaderCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var HeaderCustomElement = exports.HeaderCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator), _dec(_class = function () {
+        function HeaderCustomElement(eventAggregator) {
+            _classCallCheck(this, HeaderCustomElement);
+
+            this.ea = eventAggregator;
+            this.text = 'gopix raider';
+            this.titleData = [];
+            this.characters = [{
+                'name': ' ',
+                'data': [0]
+            }, {
+                'name': 'a',
+                'data': [31, 31, 20, 20, 15]
+            }, {
+                'name': 'd',
+                'data': [31, 31, 17, 27, 14]
+            }, {
+                'name': 'e',
+                'data': [31, 31, 21, 21, 1]
+            }, {
+                'name': 'g',
+                'data': [31, 31, 17, 21, 7]
+            }, {
+                'name': 'i',
+                'data': [31, 15]
+            }, {
+                'name': 'o',
+                'data': [31, 31, 17, 17, 15]
+            }, {
+                'name': 'p',
+                'data': [31, 31, 20, 20, 8]
+            }, {
+                'name': 'r',
+                'data': [31, 31, 20, 22, 9]
+            }, {
+                'name': 's',
+                'data': [29, 29, 21, 23, 23]
+            }, {
+                'name': 'x',
+                'data': [17, 26, 12, 6, 11, 17]
+            }];
+        }
+
+        HeaderCustomElement.prototype.getTitleData = function getTitleData(titleString) {
+            var _this = this;
+
+            function dec2bin(dec) {
+                return ('00000' + (dec >>> 0).toString(2)).substr(-5);
+            }
+            var titleData = [];
+            var titleSplit = titleString.split('');
+
+            var _loop = function _loop() {
+                if (_isArray) {
+                    if (_i >= _iterator.length) return 'break';
+                    _ref = _iterator[_i++];
+                } else {
+                    _i = _iterator.next();
+                    if (_i.done) return 'break';
+                    _ref = _i.value;
+                }
+
+                var character = _ref;
+
+                var charObject = _this.characters.find(function (x) {
+                    return x.name === character;
+                });
+                var charData = charObject.data;
+                var charName = charObject.name;
+                for (var _iterator2 = charData, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+                    var _ref2;
+
+                    if (_isArray2) {
+                        if (_i2 >= _iterator2.length) break;
+                        _ref2 = _iterator2[_i2++];
+                    } else {
+                        _i2 = _iterator2.next();
+                        if (_i2.done) break;
+                        _ref2 = _i2.value;
+                    }
+
+                    var col = _ref2;
+
+                    var binaryCol = dec2bin(col);
+                    var pixels = [];
+                    for (var _iterator3 = binaryCol, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+                        var _ref3;
+
+                        if (_isArray3) {
+                            if (_i3 >= _iterator3.length) break;
+                            _ref3 = _iterator3[_i3++];
+                        } else {
+                            _i3 = _iterator3.next();
+                            if (_i3.done) break;
+                            _ref3 = _i3.value;
+                        }
+
+                        var pix = _ref3;
+
+                        pixels.push(pix);
+                    }
+                    titleData.push(pixels);
+                }
+                titleData.push([0, 0, 0, 0, 0]);
+            };
+
+            for (var _iterator = titleSplit, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+                var _ref;
+
+                var _ret = _loop();
+
+                if (_ret === 'break') break;
+            }
+            titleData.pop();
+            return titleData;
+        };
+
+        HeaderCustomElement.prototype.attached = function attached() {
+            this.titleData = this.getTitleData(this.text);
+            console.log(this.titleData);
+        };
+
+        return HeaderCustomElement;
+    }()) || _class);
+});
+define('resources/index',["exports"], function (exports) {
   "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.configure = configure;
+  function configure(config) {}
+});
+define('resources/binding-behaviors/keystrokes',['exports'], function (exports) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var Keystrokes = exports.Keystrokes = function () {
+        function Keystrokes() {
+            _classCallCheck(this, Keystrokes);
+
+            this.myKeypressCallback = this.keypressInput.bind(this);
+        }
+
+        Keystrokes.prototype.activate = function activate() {
+            window.addEventListener('keypress', this.myKeypressCallback, false);
+        };
+
+        Keystrokes.prototype.deactivate = function deactivate() {
+            window.removeEventListener('keypress', this.myKeypressCallback);
+        };
+
+        Keystrokes.prototype.keypressInput = function keypressInput(e) {
+            console.log(e);
+        };
+
+        return Keystrokes;
+    }();
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
-define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tposition:relative;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\n#logo{\n\twidth:527px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-size: cover;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n"; });
-define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n\t<div id=\"container\">\n\t\t<div id=\"logo\" class.bind=\"player\"></div>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
+define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tposition:relative;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\nheader{\n\tdisplay: block;\n}\n#logo{\n\twidth:527px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-size: cover;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n"; });
+define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/header\"></require>\n\t<div id=\"container\">\n\t\t<!-- <div id=\"logo\" class.bind=\"player\"></div> -->\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
 define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <a href=\"#\"\n            repeat.for=\"pix of row\"\n            class.bind=\"pix.name\"\n            class=\"pix\"\n            data-strength.bind=\"pix.strength\"></a>\n    </div>\n</template>\n"; });
 define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix{\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n\twidth:527px;\n\theight:527px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n\twidth:23px;\n\theight:23px;\n\tborder-radius: 15px;\n    border: 0px solid transparent;\n    box-sizing: border-box;\n\tbackground-color: #3d89d9;\n    background-position: center center;\n}\na.pix.empty{\n    border-radius: 3px;\n}\na.black{\n    border-color: #000;\n}\na.white{\n    border-color: #fff;\n}\n"; });
-define('text!components/header.html', ['module'], function(module) { module.exports = ""; });
-define('text!components/header.css', ['module'], function(module) { module.exports = ""; });
+define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\">\n\n            </div>\n        </div>\n    </div>\n</template>\n"; });
+define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar{\n    width: 527px;\n    height: 39px;\n    margin: 20px 0;\n    display: flex;\n}\n.pixelCol{\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n.pixelCol + .pixelCol{\n    margin-left: 1px;\n}\n.pixel{\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n}\n.pixel.on{\n    background-color: #fff;\n}\n.pixel.off{\n    background-color: transparent;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map
