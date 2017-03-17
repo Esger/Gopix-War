@@ -15,17 +15,15 @@ a.pix{
 	border-radius: 15px;
     border: 0px solid transparent;
     box-sizing: border-box;
+	background-color: #3d89d9;
     background-position: center center;
 }
 a.pix.empty{
-	background-color: #3d89d9;
     border-radius: 3px;
 }
 a.black{
-	background-color: #000;
-    border-color: #888;
+    border-color: #000;
 }
 a.white{
-	background-color: #fff;
-    border-color: #888;
+    border-color: #fff;
 }
