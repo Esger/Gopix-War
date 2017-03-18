@@ -194,10 +194,10 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             this.toplay = 'white';
             this.oponent = 'black';
 
-            this.maxX = 22;
-            this.maxY = 22;
+            this.maxX = 11;
+            this.maxY = 11;
 
-            this.maxStrength = 11;
+            this.maxStrength = 20;
 
             this.playerStrength = {
                 'white': 5,
@@ -327,22 +327,22 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     this.gopix[y].push(newPix);
                 }
             }
-            this.gopix[7][7] = {
+            this.gopix[3][3] = {
                 "name": "white",
                 "strength": this.playerStrength['white']
             };
-            this.gopix[14][14] = {
+            this.gopix[7][7] = {
                 "name": "black",
                 "strength": this.playerStrength['black']
             };
         };
 
         GopixCustomElement.prototype.setup = function setup() {
-            var newPixes = [[7, 7]];
+            var newPixes = [[3, 3]];
             console.log(newPixes);
             this.drawNewPixes(newPixes);
             this.turn();
-            newPixes = [[14, 14]];
+            newPixes = [[7, 7]];
             console.log(newPixes);
             this.drawNewPixes(newPixes);
             this.turn();
@@ -588,8 +588,8 @@ define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tma
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/header\"></require>\n\t<div id=\"container\">\n\t\t<!-- <div id=\"logo\" class.bind=\"player\"></div> -->\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
-define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix{\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n\twidth:527px;\n\theight:527px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n\twidth:23px;\n\theight:23px;\n\tborder-radius: 15px;\n    border: 0px solid transparent;\n    box-sizing: border-box;\n\tbackground-color: #3d89d9;\n    background-position: center center;\n}\na.pix.empty{\n    border-radius: 3px;\n}\na.black{\n    border-color: #000;\n}\na.white{\n    border-color: #fff;\n}\n"; });
-define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <a href=\"#\"\n            repeat.for=\"pix of row\"\n            class.bind=\"pix.name\"\n            class=\"pix\"\n            data-strength.bind=\"pix.strength\"></a>\n    </div>\n</template>\n"; });
-define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar{\n    width: 527px;\n    height: 39px;\n    margin: 30px 0;\n    display: flex;\n}\n.pixelCol{\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n.pixelCol + .pixelCol{\n    margin-left: 1px;\n}\n.pixel{\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n}\n.white .pixel.on{\n    background-color: #fff;\n}\n.black .pixel.on{\n    background-color: #000;\n}\n.pixel.off{\n    background-color: transparent;\n}\n"; });
+define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix{\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n\twidth:527px;\n\theight:527px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\n.pix{\n\twidth:47px;\n\theight:47px;\n\tborder-radius: 25px;\n    border: 0px solid transparent;\n    box-sizing: border-box;\n\tbackground-color: #3d89d9;\n    background-position: center center;\n    transition: all .5s;\n}\n.pix.empty{\n    border-radius: 3px;\n}\n.black{\n    border-color: #000;\n}\n.white{\n    border-color: #fff;\n}\n"; });
+define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <span\n            repeat.for=\"pix of row\"\n            class.bind=\"pix.name\"\n            style.bind=\"pixStyle(pix)\"\n            class=\"pix\"\n            data-strength.bind=\"pix.strength\"></span>\n    </div>\n</template>\n"; });
+define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar{\n    width: 527px;\n    height: 39px;\n    margin: 30px 0;\n    display: flex;\n}\n.pixelCol{\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n.pixelCol + .pixelCol{\n    margin-left: 1px;\n}\n.pixel{\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n    transition: all 1s;\n}\n.white .pixel.on{\n    background-color: #fff;\n}\n.black .pixel.on{\n    background-color: #000;\n}\n.pixel.off{\n    background-color: transparent;\n}\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\" class.bind=\"color\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\">\n\n            </div>\n        </div>\n    </div>\n</template>\n"; });
 //# sourceMappingURL=app-bundle.js.map

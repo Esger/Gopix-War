@@ -1,10 +1,11 @@
 <template>
     <require from="components/gopix.css"></require>
     <div class="row" repeat.for = "row of gopix">
-        <a href="#"
+        <span
             repeat.for="pix of row"
             class.bind="pix.name"
+            style.bind="pixStyle(pix)"
             class="pix"
-            data-strength.bind="pix.strength"></a>
+            data-strength.bind="pix.strength"></span>
     </div>
 </template>

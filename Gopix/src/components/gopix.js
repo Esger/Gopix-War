@@ -21,10 +21,10 @@ export class GopixCustomElement {
         this.toplay = 'white';
         this.oponent = 'black';
 
-        this.maxX = 22;
-        this.maxY = 22;
+        this.maxX = 11;
+        this.maxY = 11;
 
-        this.maxStrength = 11;
+        this.maxStrength = 20;
 
         this.playerStrength = {
             'white': 5,
@@ -158,22 +158,22 @@ export class GopixCustomElement {
                 this.gopix[y].push(newPix);
             }
         }
-        this.gopix[7][7] = {
+        this.gopix[3][3] = {
             "name": "white",
             "strength": this.playerStrength['white']
         };
-        this.gopix[14][14] = {
+        this.gopix[7][7] = {
             "name": "black",
             "strength": this.playerStrength['black']
         };
     }
 
     setup() {
-        let newPixes = [[7,7]];
+        let newPixes = [[3,3]];
         console.log(newPixes);
         this.drawNewPixes(newPixes);
         this.turn();
-        newPixes = [[14,14]];
+        newPixes = [[7,7]];
         console.log(newPixes);
         this.drawNewPixes(newPixes);
         this.turn();

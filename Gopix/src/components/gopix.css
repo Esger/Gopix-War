@@ -9,21 +9,22 @@
     display: flex;
     justify-content: space-between;
 }
-a.pix{
-	width:23px;
-	height:23px;
-	border-radius: 15px;
+.pix{
+	width:47px;
+	height:47px;
+	border-radius: 25px;
     border: 0px solid transparent;
     box-sizing: border-box;
 	background-color: #3d89d9;
     background-position: center center;
+    transition: all .5s;
 }
-a.pix.empty{
+.pix.empty{
     border-radius: 3px;
 }
-a.black{
+.black{
     border-color: #000;
 }
-a.white{
+.white{
     border-color: #fff;
 }
