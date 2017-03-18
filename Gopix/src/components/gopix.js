@@ -24,7 +24,7 @@ export class GopixCustomElement {
         this.maxX = 11;
         this.maxY = 11;
 
-        this.maxStrength = 10;
+        this.maxStrength = 11;
 
         this.playerStrength = {
             'white': 5,
@@ -40,18 +40,6 @@ export class GopixCustomElement {
         return {
             'borderWidth' : (15 - pix.strength - blackCompensation) + 'px'
         };
-    }
-
-    turn() {
-        if (this.playerStrength[this.toplay] < this.maxStrength) {
-            this.playerStrength[this.toplay]++
-        }
-        // console.log(this.playerStrength);
-        // switch color
-        let temp = this.oponent;
-        this.oponent = this.toplay;
-        this.toplay = temp;
-        this.ea.publish('player', this.toplay);
     }
 
     move(direction) {
@@ -72,6 +60,13 @@ export class GopixCustomElement {
         }
     }
 
+    turn() {
+        let temp = this.oponent;
+        this.oponent = this.toplay;
+        this.toplay = temp;
+        this.ea.publish('player', this.toplay);
+    }
+
     getNewPixes(dx, dy) {
         let newPixes = [];
         let abortMove = false;
@@ -83,7 +78,8 @@ export class GopixCustomElement {
                         let newX = x + dx;
                         let newY = y + dy;
                         if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
-                            let newPix = [newX,newY];
+                            let newStrength = (thisPix.strength < this.maxStrength) ? thisPix.strength + 1 : thisPix.strength;
+                            let newPix = [newX, newY, newStrength];
                             if (this.gopix[newY][newX].strength === 0) {
                                 newPixes.push(newPix);
                             } else {
@@ -98,7 +94,6 @@ export class GopixCustomElement {
                 }
             }
         }
-        // console.table(newPixes);
         return newPixes;
     }
 
@@ -122,7 +117,6 @@ export class GopixCustomElement {
                         $pix.css(this.pixStyle(thisPix));
                     } else {
                         thisPix.name = 'empty';
-                        // $pix.css(this.pixStyle(thisPix)); // niet nodig ??
                         $pix.removeClass('black white').addClass('empty');
                     }
                 }
@@ -132,11 +126,11 @@ export class GopixCustomElement {
     }
 
     addNewPixes(newPixes){
-        let newPix = {
-            "name": this.toplay,
-            "strength": this.playerStrength[this.toplay]
-        }
         for (var i = 0; i < newPixes.length; i++) {
+            let newPix = {
+                'name' : this.toplay,
+                'strength' : newPixes[i][2]
+            }
             this.gopix[newPixes[i][1]][newPixes[i][0]] = this.copyPix(newPix);
             let $row = $($('.row')[newPixes[i][1]]);
             let $pix = $($row.children('.pix')[newPixes[i][0]]);
@@ -191,10 +185,10 @@ export class GopixCustomElement {
     }
 
     setup() {
-        let newPixes = [[3,3]];
+        let newPixes = [[3,3,5]];
         this.addNewPixes(newPixes);
         this.turn();
-        newPixes = [[7,7]];
+        newPixes = [[7,7,5]];
         this.addNewPixes(newPixes);
         this.turn();
     }

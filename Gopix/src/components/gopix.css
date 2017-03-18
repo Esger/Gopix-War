@@ -13,9 +13,6 @@
 }
 
 .pix {
-    /*display: flex;
-    justify-content: space-around;
-    align-items: center;*/
     width: 47px;
     height: 47px;
     max-width: 47px;
@@ -33,6 +30,7 @@
     border-radius: 25px;
     border: 2px solid transparent;
     transition: all .5s;
+    position: relative;
 }
 
 .pix:not(.empty):before {
