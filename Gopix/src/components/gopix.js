@@ -101,17 +101,18 @@ export class GopixCustomElement {
         return newPixes;
     }
 
+    copyPix(pix) {
+        return {
+            'name' : pix.name,
+            'strength' : pix.strength
+        }
+    }
+
     weakenPixes() {
         // prevent copying by reference
-        function copyPix(pix) {
-            return {
-                'name' : pix.name,
-                'strength' : pix.strength
-            }
-        }
         for (let y = 0; y < this.maxY; y++) {
             for (let x = 0; x < this.maxX; x++) {
-                let thisPix = copyPix(this.gopix[y][x]);
+                let thisPix = this.copyPix(this.gopix[y][x]);
                 if (thisPix.name === this.toplay) {
                     let $row = $($('.row')[y]);
                     let $pix = $($row.children('.pix')[x]);
@@ -121,10 +122,10 @@ export class GopixCustomElement {
                     } else {
                         thisPix.name = 'empty';
                         // $pix.css(this.pixStyle(thisPix)); // niet nodig ??
-                        $pix.removeClass(this.toplay).addClass('empty');
+                        $pix.removeClass('black white').addClass('empty');
                     }
                 }
-                this.gopix[y][x] = copyPix(thisPix);
+                this.gopix[y][x] = this.copyPix(thisPix);
             }
         }
     }
@@ -135,7 +136,7 @@ export class GopixCustomElement {
             "strength": this.playerStrength[this.toplay]
         }
         for (var i = 0; i < newPixes.length; i++) {
-            this.gopix[newPixes[i][1]][newPixes[i][0]] = newPix;
+            this.gopix[newPixes[i][1]][newPixes[i][0]] = this.copyPix(newPix);
             let $row = $($('.row')[newPixes[i][1]]);
             let $pix = $($row.children('.pix')[newPixes[i][0]]);
             $pix.removeClass('empty white black').addClass(this.toplay);
