@@ -13,28 +13,40 @@
 }
 
 .pix {
+    /*display: flex;
+    justify-content: space-around;
+    align-items: center;*/
     width: 47px;
     height: 47px;
-    border-radius: 25px;
-    border: 0px solid transparent;
+    max-width: 47px;
+    max-height: 47px;
     box-sizing: border-box;
+    border-radius: 3px;
+    border: 13px solid #3d89d9;
     background-color: #3d89d9;
-    background-position: center center;
+}
+
+.pix:before {
+    content: '';
+    display: block;
+    box-sizing: border-box;
+    border-radius: 25px;
+    border: 2px solid transparent;
     transition: all .5s;
 }
 
-.pix.empty {
-    border-radius: 3px;
+.pix:not(.empty):before {
+    width: 100%;
+    height: 100%;
 }
 
-.pix.black {
-    border-color: rgba(0, 0, 0, 0.7);
-    -webkit-box-shadow: inset 0 0 20px 0 rgba(0, 0, 0, 0.7);
-    box-shadow: inset 0 0 20px 0px rgba(0, 0, 0, 0.7);
+.pix.black:before {
+    border-color: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);
 }
 
-.pix.white {
-    border-color: rgba(255, 255, 255, 0.7);
-    -webkit-box-shadow: inset 0 0 20px 0 rgba(255, 255, 255, 0.7);
-    box-shadow: inset 0 0 20px 0px rgba(255, 255, 255, 0.7);
+.pix.white:before {
+    border-width: 3px;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);
 }

@@ -1,29 +1,39 @@
-.titleBar{
+.titleBar {
     width: 527px;
     height: 39px;
     margin: 30px 0;
     display: flex;
 }
-.pixelCol{
+
+.pixelCol {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
-.pixelCol + .pixelCol{
+
+.pixelCol+.pixelCol {
     margin-left: 1px;
 }
-.pixel{
+
+.pixel {
     width: 7px;
     height: 7px;
     border-radius: 4px;
     transition: all 1s;
 }
-.white .pixel.on{
+
+.pixel:not(.off) {
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, .5);
+}
+
+.white .pixel.on {
     background-color: #fff;
 }
-.black .pixel.on{
+
+.black .pixel.on {
     background-color: #000;
 }
-.pixel.off{
+
+.pixel.off {
     background-color: transparent;
 }

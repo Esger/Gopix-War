@@ -24,7 +24,7 @@ export class GopixCustomElement {
         this.maxX = 11;
         this.maxY = 11;
 
-        this.maxStrength = 20;
+        this.maxStrength = 10;
 
         this.playerStrength = {
             'white': 5,
@@ -36,8 +36,9 @@ export class GopixCustomElement {
     }
 
     pixStyle(pix) {
+        let blackCompensation = (pix.name === 'black') ? 1 : 0;
         return {
-            'borderWidth' : pix.strength + 'px'
+            'borderWidth' : (15 - pix.strength - blackCompensation) + 'px'
         };
     }
 
