@@ -217,7 +217,6 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             if (this.playerStrength[this.toplay] < this.maxStrength) {
                 this.playerStrength[this.toplay]++;
             }
-            console.log(this.playerStrength);
 
             var temp = this.oponent;
             this.oponent = this.toplay;
@@ -307,13 +306,13 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
 
         GopixCustomElement.prototype.step = function step(dx, dy) {
             var newPixes = this.getNewPixes(dx, dy);
-            console.log(newPixes);
+
             if (newPixes.length) {
                 this.weakenPixes();
                 this.drawNewPixes(newPixes);
                 this.turn();
             } else {
-                console.log('illegal move');
+                this.ea.publish('illegal');
             }
         };
 
@@ -375,9 +374,19 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
 
     var HeaderCustomElement = exports.HeaderCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator), _dec(_class = function () {
         function HeaderCustomElement(eventAggregator) {
+            var _this = this;
+
             _classCallCheck(this, HeaderCustomElement);
 
             this.ea = eventAggregator;
+            this.color = 'white';
+            this.ea.subscribe('player', function (response) {
+                _this.setTitleText(_this.getTitleData(response + ' plays'));
+                _this.color = response;
+            });
+            this.ea.subscribe('illegal', function (response) {
+                _this.setTitleText(_this.getTitleData('illegal move'));
+            });
             this.text = 'gopix raider';
             this.titleData = [];
             this.characters = [{
@@ -386,6 +395,12 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
             }, {
                 'name': 'a',
                 'data': [31, 31, 20, 20, 15]
+            }, {
+                'name': 'b',
+                'data': [31, 31, 21, 21, 11]
+            }, {
+                'name': 'c',
+                'data': [31, 31, 17, 17, 10]
             }, {
                 'name': 'd',
                 'data': [31, 31, 17, 27, 14]
@@ -396,8 +411,20 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 'name': 'g',
                 'data': [31, 31, 17, 21, 7]
             }, {
+                'name': 'h',
+                'data': [31, 31, 4, 4, 15]
+            }, {
                 'name': 'i',
                 'data': [31, 15]
+            }, {
+                'name': 'k',
+                'data': [31, 31, 12, 6, 11, 17]
+            }, {
+                'name': 'l',
+                'data': [31, 31, 1, 1, 1]
+            }, {
+                'name': 'm',
+                'data': [7, 28, 8, 28, 7]
             }, {
                 'name': 'o',
                 'data': [31, 31, 17, 17, 15]
@@ -411,13 +438,29 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 'name': 's',
                 'data': [29, 29, 21, 23, 23]
             }, {
+                'name': 't',
+                'data': [16, 31, 31, 16, 16]
+            }, {
+                'name': 'v',
+                'data': [28, 6, 1, 6, 28]
+            }, {
+                'name': 'w',
+                'data': [28, 7, 2, 7, 28]
+            }, {
                 'name': 'x',
                 'data': [17, 26, 12, 6, 11, 17]
+            }, {
+                'name': 'y',
+                'data': [16, 25, 14, 4, 8, 16]
             }];
         }
 
+        HeaderCustomElement.prototype.setTitleText = function setTitleText(titleData) {
+            this.titleData = titleData;
+        };
+
         HeaderCustomElement.prototype.getTitleData = function getTitleData(titleString) {
-            var _this = this;
+            var _this2 = this;
 
             function dec2bin(dec) {
                 return ('00000' + (dec >>> 0).toString(2)).substr(-5);
@@ -437,7 +480,7 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
 
                 var character = _ref;
 
-                var charObject = _this.characters.find(function (x) {
+                var charObject = _this2.characters.find(function (x) {
                     return x.name === character;
                 });
                 var charData = charObject.data;
@@ -492,7 +535,6 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
 
         HeaderCustomElement.prototype.attached = function attached() {
             this.titleData = this.getTitleData(this.text);
-            console.log(this.titleData);
         };
 
         return HeaderCustomElement;
@@ -542,12 +584,12 @@ define('resources/binding-behaviors/keystrokes',['exports'], function (exports) 
         return Keystrokes;
     }();
 });
-define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
 define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tposition:relative;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\nheader{\n\tdisplay: block;\n}\n#logo{\n\twidth:527px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-size: cover;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n"; });
-define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/header\"></require>\n\t<div id=\"container\">\n\t\t<!-- <div id=\"logo\" class.bind=\"player\"></div> -->\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
-define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <a href=\"#\"\n            repeat.for=\"pix of row\"\n            class.bind=\"pix.name\"\n            class=\"pix\"\n            data-strength.bind=\"pix.strength\"></a>\n    </div>\n</template>\n"; });
+define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/header\"></require>\n\t<div id=\"container\">\n\t\t<!-- <div id=\"logo\" class.bind=\"player\"></div> -->\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
 define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix{\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n\twidth:527px;\n\theight:527px;\n}\n.row{\n    display: flex;\n    justify-content: space-between;\n}\na.pix{\n\twidth:23px;\n\theight:23px;\n\tborder-radius: 15px;\n    border: 0px solid transparent;\n    box-sizing: border-box;\n\tbackground-color: #3d89d9;\n    background-position: center center;\n}\na.pix.empty{\n    border-radius: 3px;\n}\na.black{\n    border-color: #000;\n}\na.white{\n    border-color: #fff;\n}\n"; });
-define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\">\n\n            </div>\n        </div>\n    </div>\n</template>\n"; });
-define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar{\n    width: 527px;\n    height: 39px;\n    margin: 20px 0;\n    display: flex;\n}\n.pixelCol{\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n.pixelCol + .pixelCol{\n    margin-left: 1px;\n}\n.pixel{\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n}\n.pixel.on{\n    background-color: #fff;\n}\n.pixel.off{\n    background-color: transparent;\n}\n"; });
+define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <a href=\"#\"\n            repeat.for=\"pix of row\"\n            class.bind=\"pix.name\"\n            class=\"pix\"\n            data-strength.bind=\"pix.strength\"></a>\n    </div>\n</template>\n"; });
+define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar{\n    width: 527px;\n    height: 39px;\n    margin: 30px 0;\n    display: flex;\n}\n.pixelCol{\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n.pixelCol + .pixelCol{\n    margin-left: 1px;\n}\n.pixel{\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n}\n.white .pixel.on{\n    background-color: #fff;\n}\n.black .pixel.on{\n    background-color: #000;\n}\n.pixel.off{\n    background-color: transparent;\n}\n"; });
+define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\" class.bind=\"color\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\">\n\n            </div>\n        </div>\n    </div>\n</template>\n"; });
 //# sourceMappingURL=app-bundle.js.map

@@ -45,7 +45,7 @@ export class GopixCustomElement {
         if (this.playerStrength[this.toplay] < this.maxStrength) {
             this.playerStrength[this.toplay]++
         }
-        console.log(this.playerStrength);
+        // console.log(this.playerStrength);
         // switch color
         let temp = this.oponent;
         this.oponent = this.toplay;
@@ -135,13 +135,14 @@ export class GopixCustomElement {
 
     step(dx, dy) {
         let newPixes = this.getNewPixes(dx, dy);
-        console.log(newPixes);
+        // console.log(newPixes);
         if (newPixes.length) {
             this.weakenPixes();
             this.drawNewPixes(newPixes);
             this.turn();
         } else {
-            console.log('illegal move');
+            this.ea.publish('illegal');
+            // console.log('illegal move');
         }
     }
 

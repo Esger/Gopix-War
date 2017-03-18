@@ -1,6 +1,6 @@
 <template>
     <require from="components/header.css"></require>
-    <div class="titleBar">
+    <div class="titleBar" class.bind="color">
         <div class="pixelCol" repeat.for="col of titleData">
             <div class="pixel" repeat.for="pixel of col" class.bind="pixel == 1 ? 'on' : 'off'">
 
