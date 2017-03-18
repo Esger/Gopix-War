@@ -3,9 +3,8 @@
     <div class="row" repeat.for = "row of gopix">
         <span
             repeat.for="pix of row"
-            class.bind="pix.name"
-            style.bind="pixStyle(pix)"
-            class="pix"
-            data-strength.bind="pix.strength"></span>
+            class.one-time="pix.name"
+            style.one-time="pixStyle(pix)"
+            class="pix"></span>
     </div>
 </template>

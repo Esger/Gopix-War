@@ -83,7 +83,7 @@ export class GopixCustomElement {
                         let newY = y + dy;
                         if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
                             let newPix = [newX,newY];
-                            if (this.gopix[newY][newX].name == 'empty') {
+                            if (this.gopix[newY][newX].strength === 0) {
                                 newPixes.push(newPix);
                             } else {
                                 if (this.gopix[newY][newX].name == this.oponent) {
@@ -97,29 +97,39 @@ export class GopixCustomElement {
                 }
             }
         }
+        // console.table(newPixes);
         return newPixes;
     }
 
     weakenPixes() {
+        // prevent copying by reference
+        function copyPix(pix) {
+            return {
+                'name' : pix.name,
+                'strength' : pix.strength
+            }
+        }
         for (let y = 0; y < this.maxY; y++) {
             for (let x = 0; x < this.maxX; x++) {
-                let thisPix = this.gopix[y][x];
+                let thisPix = copyPix(this.gopix[y][x]);
                 if (thisPix.name === this.toplay) {
                     let $row = $($('.row')[y]);
                     let $pix = $($row.children('.pix')[x]);
-                    if (thisPix.strength > 1) {
+                    if (thisPix.strength > 0) {
                         thisPix.strength--;
                         $pix.css(this.pixStyle(thisPix));
                     } else {
                         thisPix.name = 'empty';
+                        // $pix.css(this.pixStyle(thisPix)); // niet nodig ??
                         $pix.removeClass(this.toplay).addClass('empty');
                     }
                 }
+                this.gopix[y][x] = copyPix(thisPix);
             }
         }
     }
 
-    drawNewPixes(newPixes){
+    addNewPixes(newPixes){
         let newPix = {
             "name": this.toplay,
             "strength": this.playerStrength[this.toplay]
@@ -134,18 +144,28 @@ export class GopixCustomElement {
     }
 
     step(dx, dy) {
+        console.clear();
         let newPixes = this.getNewPixes(dx, dy);
         // console.log(newPixes);
         if (newPixes.length) {
+            // this.logArray('start', this.gopix);
             this.weakenPixes();
-            this.drawNewPixes(newPixes);
+            // this.logArray('weaken', this.gopix);
+            this.addNewPixes(newPixes);
+            // this.logArray('new', this.gopix);
             this.turn();
         } else {
             this.ea.publish('illegal');
-            // console.log('illegal move');
         }
     }
 
+    logArray(str, arr){
+        let arrr = arr.slice();
+        console.log(str);
+        for (var i = 0; i < arrr.length; i++) {
+            console.table(arrr[i]);
+        }
+    }
     // setup the board
     reset() {
         let newPix = {
@@ -170,12 +190,10 @@ export class GopixCustomElement {
 
     setup() {
         let newPixes = [[3,3]];
-        console.log(newPixes);
-        this.drawNewPixes(newPixes);
+        this.addNewPixes(newPixes);
         this.turn();
         newPixes = [[7,7]];
-        console.log(newPixes);
-        this.drawNewPixes(newPixes);
+        this.addNewPixes(newPixes);
         this.turn();
     }
 
