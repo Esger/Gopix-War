@@ -38,7 +38,7 @@ export class GopixCustomElement {
     pixStyle(pix) {
         let blackCompensation = (pix.name === 'black') ? 1 : 0;
         return {
-            'borderWidth' : (15 - pix.strength - blackCompensation) + 'px'
+            'borderWidth': (15 - pix.strength - blackCompensation) + 'px'
         };
     }
 
@@ -61,9 +61,7 @@ export class GopixCustomElement {
     }
 
     turn() {
-        let temp = this.oponent;
-        this.oponent = this.toplay;
-        this.toplay = temp;
+        [this.oponent, this.toplay] = [this.toplay, this.oponent];
         this.ea.publish('player', this.toplay);
     }
 
@@ -99,8 +97,8 @@ export class GopixCustomElement {
 
     copyPix(pix) {
         return {
-            'name' : pix.name,
-            'strength' : pix.strength
+            'name': pix.name,
+            'strength': pix.strength
         }
     }
 
@@ -125,11 +123,11 @@ export class GopixCustomElement {
         }
     }
 
-    addNewPixes(newPixes){
+    addNewPixes(newPixes) {
         for (var i = 0; i < newPixes.length; i++) {
             let newPix = {
-                'name' : this.toplay,
-                'strength' : newPixes[i][2]
+                'name': this.toplay,
+                'strength': newPixes[i][2]
             }
             this.gopix[newPixes[i][1]][newPixes[i][0]] = this.copyPix(newPix);
             let $row = $($('.row')[newPixes[i][1]]);
@@ -139,23 +137,88 @@ export class GopixCustomElement {
         }
     }
 
+    killIsolatedOponentPixes() {
+        let self = this;
+
+        function findFirstOponentPix() {
+            function firstOponentPix(pix) {
+                let result = (pix.name === self.oponent);
+                return result;
+            }
+
+            function firstOponentRow(row) {
+                let result = row.find(firstOponentPix);
+                return result;
+            }
+            let startRow = self.gopix.findIndex(firstOponentRow);
+            let startPix = self.gopix[startRow].findIndex(firstOponentPix);
+            return [startPix, startRow];
+        }
+
+        function countAdjacentArea(startPos) {
+            let area = 1;
+            $('.'+self.toplay).removeClass('red');
+            $('.empty').removeClass('red');
+
+            function markPixel(position) {
+                self.gopix[position[1]][position[0]].marked = true;
+                let $row = $($('.row')[position[1]]);
+                let $pix = $($row.children('.pix')[position[0]]);
+                $pix.addClass('red');
+            }
+
+            function clearMarks() {
+                self.gopix.forEach(function(row) {
+                    row.forEach(function(pixel) {
+                        pixel.marked = false;
+                    })
+                });
+            }
+
+            function countAdjacentPixes(startPos) {
+                let neighbours = [[0, -1],[1, 0],[0, 1],[-1, 0]];
+                neighbours.forEach(function (neighbour) {
+                    let xy = [startPos[0] + neighbour[0], startPos[1] + neighbour[1]];
+                    let thisPix = self.gopix[xy[1]][xy[0]];
+                    if (thisPix.name === self.oponent && !thisPix.marked) {
+                        markPixel(xy)
+                        area++;
+                        countAdjacentPixes(xy);
+                    }
+                });
+            }
+
+            clearMarks();
+            markPixel(startPos);
+            countAdjacentPixes(startPos);
+            // self.logArray('counts cleared', self.gopix);
+            // clearMarks();
+
+            return area;
+        }
+
+        let firstOponentPix = findFirstOponentPix();
+        let area = countAdjacentArea(firstOponentPix);
+
+        console.log(self.oponent, area);
+
+
+    }
+
     step(dx, dy) {
         console.clear();
         let newPixes = this.getNewPixes(dx, dy);
-        // console.log(newPixes);
         if (newPixes.length) {
-            // this.logArray('start', this.gopix);
             this.weakenPixes();
-            // this.logArray('weaken', this.gopix);
             this.addNewPixes(newPixes);
-            // this.logArray('new', this.gopix);
+            this.killIsolatedOponentPixes();
             this.turn();
         } else {
             this.ea.publish('illegal');
         }
     }
 
-    logArray(str, arr){
+    logArray(str, arr) {
         let arrr = arr.slice();
         console.log(str);
         for (var i = 0; i < arrr.length; i++) {
@@ -185,15 +248,19 @@ export class GopixCustomElement {
     }
 
     setup() {
-        let newPixes = [[3,3,5]];
+        let newPixes = [
+            [3, 3, 5]
+        ];
         this.addNewPixes(newPixes);
         this.turn();
-        newPixes = [[7,7,5]];
+        newPixes = [
+            [7, 7, 5]
+        ];
         this.addNewPixes(newPixes);
         this.turn();
     }
 
-    attached(){
+    attached() {
         this.reset();
         this.setup();
     }

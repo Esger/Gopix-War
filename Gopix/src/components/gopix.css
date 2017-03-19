@@ -21,6 +21,10 @@
     border-radius: 3px;
     border: 13px solid #3d89d9;
     background-color: #3d89d9;
+    transition: all .2s;
+}
+.pix.red{
+    border: 1px solid red;
 }
 
 .pix:before {
@@ -29,7 +33,7 @@
     box-sizing: border-box;
     border-radius: 25px;
     border: 2px solid transparent;
-    transition: all .5s;
+    transition: all .2s;
     position: relative;
 }
 

@@ -233,9 +233,10 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         };
 
         GopixCustomElement.prototype.turn = function turn() {
-            var temp = this.oponent;
-            this.oponent = this.toplay;
-            this.toplay = temp;
+            var _ref = [this.toplay, this.oponent];
+            this.oponent = _ref[0];
+            this.toplay = _ref[1];
+
             this.ea.publish('player', this.toplay);
         };
 
@@ -310,15 +311,78 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             }
         };
 
+        GopixCustomElement.prototype.killIsolatedOponentPixes = function killIsolatedOponentPixes() {
+            var self = this;
+
+            function findFirstOponentPix() {
+                function firstOponentPix(pix) {
+                    var result = pix.name === self.oponent;
+                    return result;
+                }
+
+                function firstOponentRow(row) {
+                    var result = row.find(firstOponentPix);
+                    return result;
+                }
+                var startRow = self.gopix.findIndex(firstOponentRow);
+                var startPix = self.gopix[startRow].findIndex(firstOponentPix);
+                return [startPix, startRow];
+            }
+
+            function countAdjacentArea(startPos) {
+                var area = 1;
+                (0, _jquery2.default)('.' + self.toplay).removeClass('red');
+                (0, _jquery2.default)('.empty').removeClass('red');
+
+                function markPixel(position) {
+                    self.gopix[position[1]][position[0]].marked = true;
+                    var $row = (0, _jquery2.default)((0, _jquery2.default)('.row')[position[1]]);
+                    var $pix = (0, _jquery2.default)($row.children('.pix')[position[0]]);
+                    $pix.addClass('red');
+                }
+
+                function clearMarks() {
+                    self.gopix.forEach(function (row) {
+                        row.forEach(function (pixel) {
+                            pixel.marked = false;
+                        });
+                    });
+                }
+
+                function countAdjacentPixes(startPos) {
+                    var neighbours = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+                    neighbours.forEach(function (neighbour) {
+                        var xy = [startPos[0] + neighbour[0], startPos[1] + neighbour[1]];
+                        var thisPix = self.gopix[xy[1]][xy[0]];
+                        if (thisPix.name === self.oponent && !thisPix.marked) {
+                            markPixel(xy);
+                            area++;
+                            countAdjacentPixes(xy);
+                        }
+                    });
+                }
+
+                clearMarks();
+                markPixel(startPos);
+                countAdjacentPixes(startPos);
+
+
+                return area;
+            }
+
+            var firstOponentPix = findFirstOponentPix();
+            var area = countAdjacentArea(firstOponentPix);
+
+            console.log(self.oponent, area);
+        };
+
         GopixCustomElement.prototype.step = function step(dx, dy) {
             console.clear();
             var newPixes = this.getNewPixes(dx, dy);
-
             if (newPixes.length) {
                 this.weakenPixes();
-
                 this.addNewPixes(newPixes);
-
+                this.killIsolatedOponentPixes();
                 this.turn();
             } else {
                 this.ea.publish('illegal');
@@ -603,7 +667,7 @@ define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tma
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/header\"></require>\n\t<div id=\"container\">\n\t\t<!-- <div id=\"logo\" class.bind=\"player\"></div> -->\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
-define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix {\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    width: 527px;\n    height: 527px;\n}\n\n.row {\n    flex: 0 0 47px;\n    display: flex;\n    justify-content: space-between;\n}\n\n.pix {\n    width: 47px;\n    height: 47px;\n    max-width: 47px;\n    max-height: 47px;\n    box-sizing: border-box;\n    border-radius: 3px;\n    border: 13px solid #3d89d9;\n    background-color: #3d89d9;\n}\n\n.pix:before {\n    content: '';\n    display: block;\n    box-sizing: border-box;\n    border-radius: 25px;\n    border: 2px solid transparent;\n    transition: all .5s;\n    position: relative;\n}\n\n.pix:not(.empty):before {\n    width: 100%;\n    height: 100%;\n}\n\n.pix.black:before {\n    border-color: rgba(0, 0, 0, 0.6);\n    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);\n}\n\n.pix.white:before {\n    border-width: 3px;\n    border-color: rgba(255, 255, 255, 0.5);\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);\n}\n"; });
+define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix {\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    width: 527px;\n    height: 527px;\n}\n\n.row {\n    flex: 0 0 47px;\n    display: flex;\n    justify-content: space-between;\n}\n\n.pix {\n    width: 47px;\n    height: 47px;\n    max-width: 47px;\n    max-height: 47px;\n    box-sizing: border-box;\n    border-radius: 3px;\n    border: 13px solid #3d89d9;\n    background-color: #3d89d9;\n    transition: all .2s;\n}\n.pix.red{\n    border: 1px solid red;\n}\n\n.pix:before {\n    content: '';\n    display: block;\n    box-sizing: border-box;\n    border-radius: 25px;\n    border: 2px solid transparent;\n    transition: all .2s;\n    position: relative;\n}\n\n.pix:not(.empty):before {\n    width: 100%;\n    height: 100%;\n}\n\n.pix.black:before {\n    border-color: rgba(0, 0, 0, 0.6);\n    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);\n}\n\n.pix.white:before {\n    border-width: 3px;\n    border-color: rgba(255, 255, 255, 0.5);\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);\n}\n"; });
 define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <span\n            repeat.for=\"pix of row\"\n            class.one-time=\"pix.name\"\n            style.one-time=\"pixStyle(pix)\"\n            class=\"pix\"></span>\n    </div>\n</template>\n"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar {\n    width: 527px;\n    height: 39px;\n    margin: 30px 0;\n    display: flex;\n}\n\n.pixelCol {\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n\n.pixelCol+.pixelCol {\n    margin-left: 1px;\n}\n\n.pixel {\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n    transition: all 1s;\n}\n\n.pixel:not(.off) {\n    box-shadow: 0 0 2px 0 rgba(0, 0, 0, .5);\n}\n\n.white .pixel.on {\n    background-color: #fff;\n}\n\n.black .pixel.on {\n    background-color: #000;\n}\n\n.pixel.off {\n    background-color: transparent;\n}\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\" class.bind=\"color\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\">\n\n            </div>\n        </div>\n    </div>\n</template>\n"; });
