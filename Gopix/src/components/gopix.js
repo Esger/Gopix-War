@@ -140,9 +140,38 @@ export class GopixCustomElement {
     killIsolatedOponentPixes() {
         let self = this;
 
+        function clearMarks() {
+            self.gopix.forEach(function(row) {
+                row.forEach(function(pixel) {
+                    pixel.marked = false;
+                })
+            });
+        }
+
+        function withinBounds(xy) {
+            return xy[0]>=0 && xy[1]>=0 && xy[0]<self.maxX && xy[1]<self.maxY;
+        }
+
+        function markPixel(position) {
+            self.gopix[position[1]][position[0]].marked = true;
+            // let $row = $($('.row')[position[1]]);
+            // let $pix = $($row.children('.pix')[position[0]]);
+            // $pix.addClass('red');
+        }
+
+        function countPixes(player) {
+            let total = 0;
+            self.gopix.forEach(function(row) {
+                row.forEach(function(pixel) {
+                    if (pixel.name === player) total++;
+                });
+            });
+            return total;
+        }
+
         function findFirstOponentPix() {
             function firstOponentPix(pix) {
-                let result = (pix.name === self.oponent);
+                let result = (pix.name === self.oponent && !pix.marked);
                 return result;
             }
 
@@ -155,53 +184,85 @@ export class GopixCustomElement {
             return [startPix, startRow];
         }
 
-        function countAdjacentArea(startPos) {
-            let area = 1;
+        function getAdjacentArea(startPos) {
+            let area = [startPos];
             $('.'+self.toplay).removeClass('red');
             $('.empty').removeClass('red');
-
-            function markPixel(position) {
-                self.gopix[position[1]][position[0]].marked = true;
-                let $row = $($('.row')[position[1]]);
-                let $pix = $($row.children('.pix')[position[0]]);
-                $pix.addClass('red');
-            }
-
-            function clearMarks() {
-                self.gopix.forEach(function(row) {
-                    row.forEach(function(pixel) {
-                        pixel.marked = false;
-                    })
-                });
-            }
 
             function countAdjacentPixes(startPos) {
                 let neighbours = [[0, -1],[1, 0],[0, 1],[-1, 0]];
                 neighbours.forEach(function (neighbour) {
                     let xy = [startPos[0] + neighbour[0], startPos[1] + neighbour[1]];
-                    let thisPix = self.gopix[xy[1]][xy[0]];
-                    if (thisPix.name === self.oponent && !thisPix.marked) {
-                        markPixel(xy)
-                        area++;
-                        countAdjacentPixes(xy);
+                    if (withinBounds(xy)) {
+                        let thisPix = self.gopix[xy[1]][xy[0]];
+                        if (thisPix.name === self.oponent && !thisPix.marked) {
+                            markPixel(xy)
+                            area.push(xy);
+                            countAdjacentPixes(xy);
+                        }
                     }
                 });
             }
 
-            clearMarks();
             markPixel(startPos);
             countAdjacentPixes(startPos);
             // self.logArray('counts cleared', self.gopix);
-            // clearMarks();
 
             return area;
         }
 
-        let firstOponentPix = findFirstOponentPix();
-        let area = countAdjacentArea(firstOponentPix);
+        function getAreas() {
+            let totalOponentPixes = countPixes(self.oponent);
+            let firstOponentPix = findFirstOponentPix();
+            let area = getAdjacentArea(firstOponentPix);
+            let areas = [area];
+            let areaCount = area.length;
+            while (areaCount < totalOponentPixes) {
+                firstOponentPix = findFirstOponentPix();
+                area = getAdjacentArea(firstOponentPix);
+                areas.push(area);
+                areaCount += area.length;
+            }
+            return areas;
+        }
 
-        console.log(self.oponent, area);
+        function killArea(area) {
+            area.forEach(function(xy) {
+                self.gopix[xy[1]][xy[0]].name = 'empty';
+                self.gopix[xy[1]][xy[0]].strength = 0;
+                let $row = $($('.row')[xy[1]]);
+                let $pix = $($row.children('.pix')[xy[0]]);
+                $pix.removeClass('black white').addClass('empty');
+            });
+        }
 
+        function strength(area) {
+            strength = 0;
+            area.forEach(function(xy) {
+                strength += self.gopix[xy[1]][xy[0]].strength;
+            });
+            return strength;
+        }
+
+        function killSmallestAreas(areas) {
+            let smallestArea = 0;
+            let i = 1;
+            while (areas.length > 1) {
+                if (areas[i].length < areas[smallestArea].length) {
+                    smallestArea = i;
+                }
+                // else if (areas[i].length === areas[smallestArea].length) {
+                //     if (strength(areas[i]) < strength(areas[smallestArea])) {
+                //         smallestArea = i;
+                //     }
+                // }
+                killArea(areas[smallestArea]);
+                areas.splice(smallestArea, 1);
+            }
+        }
+
+        clearMarks();
+        killSmallestAreas(getAreas());
 
     }
 
