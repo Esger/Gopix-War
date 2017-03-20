@@ -383,16 +383,19 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             }
 
             function getAreas() {
+                var areas = [];
                 var totalOponentPixes = countPixes(self.oponent);
                 var firstOponentPix = findFirstOponentPix();
-                var area = getAdjacentArea(firstOponentPix);
-                var areas = [area];
-                var areaCount = area.length;
-                while (areaCount < totalOponentPixes) {
-                    firstOponentPix = findFirstOponentPix();
-                    area = getAdjacentArea(firstOponentPix);
-                    areas.push(area);
-                    areaCount += area.length;
+                if (firstOponentPix.length) {
+                    var area = getAdjacentArea(firstOponentPix);
+                    areas = [area];
+                    var areaCount = area.length;
+                    while (areaCount < totalOponentPixes) {
+                        firstOponentPix = findFirstOponentPix();
+                        area = getAdjacentArea(firstOponentPix);
+                        areas.push(area);
+                        areaCount += area.length;
+                    }
                 }
                 return areas;
             }
@@ -421,15 +424,23 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 while (areas.length > 1) {
                     if (areas[i].length < areas[smallestArea].length) {
                         smallestArea = i;
+                    } else if (areas[i].length === areas[smallestArea].length) {
+                        var smallestAreaStrength = strength(areas[smallestArea]);
+                        var thisAreaStrength = strength(areas[i]);
+                        if (thisAreaStrength < smallestAreaStrength) {
+                            smallestArea = i;
+                        }
                     }
-
                     killArea(areas[smallestArea]);
                     areas.splice(smallestArea, 1);
                 }
             }
 
             clearMarks();
-            killSmallestAreas(getAreas());
+            var areas = getAreas();
+            if (areas.length) {
+                killSmallestAreas(areas);
+            }
         };
 
         GopixCustomElement.prototype.step = function step(dx, dy) {

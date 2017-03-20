@@ -212,16 +212,19 @@ export class GopixCustomElement {
         }
 
         function getAreas() {
+            let areas = [];
             let totalOponentPixes = countPixes(self.oponent);
             let firstOponentPix = findFirstOponentPix();
-            let area = getAdjacentArea(firstOponentPix);
-            let areas = [area];
-            let areaCount = area.length;
-            while (areaCount < totalOponentPixes) {
-                firstOponentPix = findFirstOponentPix();
-                area = getAdjacentArea(firstOponentPix);
-                areas.push(area);
-                areaCount += area.length;
+            if (firstOponentPix.length) {
+                let area = getAdjacentArea(firstOponentPix);
+                areas = [area];
+                let areaCount = area.length;
+                while (areaCount < totalOponentPixes) {
+                    firstOponentPix = findFirstOponentPix();
+                    area = getAdjacentArea(firstOponentPix);
+                    areas.push(area);
+                    areaCount += area.length;
+                }
             }
             return areas;
         }
@@ -251,18 +254,24 @@ export class GopixCustomElement {
                 if (areas[i].length < areas[smallestArea].length) {
                     smallestArea = i;
                 }
-                // else if (areas[i].length === areas[smallestArea].length) {
-                //     if (strength(areas[i]) < strength(areas[smallestArea])) {
-                //         smallestArea = i;
-                //     }
-                // }
+                else if (areas[i].length === areas[smallestArea].length) {
+                    // You can't call the same function in the if comparison CHECK!!
+                    let smallestAreaStrength = strength(areas[smallestArea]);
+                    let thisAreaStrength = strength(areas[i]);
+                    if (thisAreaStrength < smallestAreaStrength) {
+                        smallestArea = i;
+                    }
+                }
                 killArea(areas[smallestArea]);
                 areas.splice(smallestArea, 1);
             }
         }
 
         clearMarks();
-        killSmallestAreas(getAreas());
+        let areas = getAreas()
+        if (areas.length) {
+            killSmallestAreas(areas);
+        }
 
     }
 
