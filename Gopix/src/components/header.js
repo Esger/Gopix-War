@@ -16,6 +16,7 @@ export class HeaderCustomElement {
             this.setTitleText(this.getTitleData(response + ' plays'));
             this.color = response;
         });
+        // TODO make general event to display text in title
         this.ea.subscribe('illegal', response => {
             this.setTitleText(this.getTitleData('illegal move'));
         });

@@ -205,6 +205,8 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             };
 
             this.gopix = [];
+
+            this.neighbours = [[0, -1], [1, 0], [0, 1], [-1, 0]];
         }
 
         GopixCustomElement.prototype.pixStyle = function pixStyle(pix) {
@@ -311,6 +313,28 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             }
         };
 
+        GopixCustomElement.prototype.countPixes = function countPixes(player) {
+            var total = 0;
+            this.gopix.forEach(function (row) {
+                row.forEach(function (pixel) {
+                    if (pixel.name === player) total++;
+                });
+            });
+            return total;
+        };
+
+        GopixCustomElement.prototype.withinBounds = function withinBounds(xy) {
+            return xy[0] >= 0 && xy[1] >= 0 && xy[0] < this.maxX && xy[1] < this.maxY;
+        };
+
+        GopixCustomElement.prototype.strength = function strength(area) {
+            var strength = 0;
+            area.forEach(function (xy) {
+                strength += this.gopix[xy[1]][xy[0]].strength;
+            });
+            return strength;
+        };
+
         GopixCustomElement.prototype.killIsolatedOponentPixes = function killIsolatedOponentPixes() {
             var self = this;
 
@@ -322,22 +346,8 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 });
             }
 
-            function withinBounds(xy) {
-                return xy[0] >= 0 && xy[1] >= 0 && xy[0] < self.maxX && xy[1] < self.maxY;
-            }
-
             function markPixel(position) {
                 self.gopix[position[1]][position[0]].marked = true;
-            }
-
-            function countPixes(player) {
-                var total = 0;
-                self.gopix.forEach(function (row) {
-                    row.forEach(function (pixel) {
-                        if (pixel.name === player) total++;
-                    });
-                });
-                return total;
             }
 
             function findFirstOponentPix() {
@@ -361,10 +371,9 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 (0, _jquery2.default)('.empty').removeClass('red');
 
                 function countAdjacentPixes(startPos) {
-                    var neighbours = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-                    neighbours.forEach(function (neighbour) {
+                    self.neighbours.forEach(function (neighbour) {
                         var xy = [startPos[0] + neighbour[0], startPos[1] + neighbour[1]];
-                        if (withinBounds(xy)) {
+                        if (self.withinBounds(xy)) {
                             var thisPix = self.gopix[xy[1]][xy[0]];
                             if (thisPix.name === self.oponent && !thisPix.marked) {
                                 markPixel(xy);
@@ -384,7 +393,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
 
             function getAreas() {
                 var areas = [];
-                var totalOponentPixes = countPixes(self.oponent);
+                var totalOponentPixes = self.countPixes(self.oponent);
                 var firstOponentPix = findFirstOponentPix();
                 if (firstOponentPix.length) {
                     var area = getAdjacentArea(firstOponentPix);
@@ -410,14 +419,6 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 });
             }
 
-            function strength(area) {
-                strength = 0;
-                area.forEach(function (xy) {
-                    strength += self.gopix[xy[1]][xy[0]].strength;
-                });
-                return strength;
-            }
-
             function killSmallestAreas(areas) {
                 var smallestArea = 0;
                 var i = 1;
@@ -425,8 +426,8 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     if (areas[i].length < areas[smallestArea].length) {
                         smallestArea = i;
                     } else if (areas[i].length === areas[smallestArea].length) {
-                        var smallestAreaStrength = strength(areas[smallestArea]);
-                        var thisAreaStrength = strength(areas[i]);
+                        var smallestAreaStrength = self.strength(areas[smallestArea]);
+                        var thisAreaStrength = self.strength(areas[i]);
                         if (thisAreaStrength < smallestAreaStrength) {
                             smallestArea = i;
                         }
@@ -443,6 +444,26 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             }
         };
 
+        GopixCustomElement.prototype.surrounded = function surrounded(pixel) {
+            var self = this;
+            var surrounders = 0;
+            self.neighbours.forEach(function (neighbour) {
+                var xy = [pixel[0] + neighbour[0], pixel[1] + neighbour[1]];
+                if (self.withinBounds(xy)) {
+                    surrounders++;
+                }
+            });
+            return surrounders;
+        };
+
+        GopixCustomElement.prototype.killEnclosedSingleOponent = function killEnclosedSingleOponent() {
+            if (this.countPixes(this.oponent) === 1) {
+                if (this.surrounded(this.oponent) > 2) {
+                    console.log('yo lost');
+                }
+            }
+        };
+
         GopixCustomElement.prototype.step = function step(dx, dy) {
             console.clear();
             var newPixes = this.getNewPixes(dx, dy);
@@ -450,6 +471,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 this.weakenPixes();
                 this.addNewPixes(newPixes);
                 this.killIsolatedOponentPixes();
+                this.killEnclosedSingleOponent();
                 this.turn();
             } else {
                 this.ea.publish('illegal');
@@ -530,6 +552,7 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 _this.setTitleText(_this.getTitleData(response + ' plays'));
                 _this.color = response;
             });
+
             this.ea.subscribe('illegal', function (response) {
                 _this.setTitleText(_this.getTitleData('illegal move'));
             });

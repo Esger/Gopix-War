@@ -33,6 +33,8 @@ export class GopixCustomElement {
 
         this.gopix = [];
 
+        this.neighbours = [[0, -1],[1, 0],[0, 1],[-1, 0]];
+
     }
 
     pixStyle(pix) {
@@ -137,6 +139,28 @@ export class GopixCustomElement {
         }
     }
 
+    countPixes(player) {
+        let total = 0;
+        this.gopix.forEach(function(row) {
+            row.forEach(function(pixel) {
+                if (pixel.name === player) total++;
+            });
+        });
+        return total;
+    }
+
+    withinBounds(xy) {
+        return xy[0]>=0 && xy[1]>=0 && xy[0]<this.maxX && xy[1]<this.maxY;
+    }
+
+    strength(area) {
+        let strength = 0;
+        area.forEach(function(xy) {
+            strength += this.gopix[xy[1]][xy[0]].strength;
+        });
+        return strength;
+    }
+
     killIsolatedOponentPixes() {
         let self = this;
 
@@ -148,25 +172,11 @@ export class GopixCustomElement {
             });
         }
 
-        function withinBounds(xy) {
-            return xy[0]>=0 && xy[1]>=0 && xy[0]<self.maxX && xy[1]<self.maxY;
-        }
-
         function markPixel(position) {
             self.gopix[position[1]][position[0]].marked = true;
             // let $row = $($('.row')[position[1]]);
             // let $pix = $($row.children('.pix')[position[0]]);
             // $pix.addClass('red');
-        }
-
-        function countPixes(player) {
-            let total = 0;
-            self.gopix.forEach(function(row) {
-                row.forEach(function(pixel) {
-                    if (pixel.name === player) total++;
-                });
-            });
-            return total;
         }
 
         function findFirstOponentPix() {
@@ -190,10 +200,9 @@ export class GopixCustomElement {
             $('.empty').removeClass('red');
 
             function countAdjacentPixes(startPos) {
-                let neighbours = [[0, -1],[1, 0],[0, 1],[-1, 0]];
-                neighbours.forEach(function (neighbour) {
+                self.neighbours.forEach(function (neighbour) {
                     let xy = [startPos[0] + neighbour[0], startPos[1] + neighbour[1]];
-                    if (withinBounds(xy)) {
+                    if (self.withinBounds(xy)) {
                         let thisPix = self.gopix[xy[1]][xy[0]];
                         if (thisPix.name === self.oponent && !thisPix.marked) {
                             markPixel(xy)
@@ -213,7 +222,7 @@ export class GopixCustomElement {
 
         function getAreas() {
             let areas = [];
-            let totalOponentPixes = countPixes(self.oponent);
+            let totalOponentPixes = self.countPixes(self.oponent);
             let firstOponentPix = findFirstOponentPix();
             if (firstOponentPix.length) {
                 let area = getAdjacentArea(firstOponentPix);
@@ -239,14 +248,6 @@ export class GopixCustomElement {
             });
         }
 
-        function strength(area) {
-            strength = 0;
-            area.forEach(function(xy) {
-                strength += self.gopix[xy[1]][xy[0]].strength;
-            });
-            return strength;
-        }
-
         function killSmallestAreas(areas) {
             let smallestArea = 0;
             let i = 1;
@@ -256,8 +257,8 @@ export class GopixCustomElement {
                 }
                 else if (areas[i].length === areas[smallestArea].length) {
                     // You can't call the same function in the if comparison CHECK!!
-                    let smallestAreaStrength = strength(areas[smallestArea]);
-                    let thisAreaStrength = strength(areas[i]);
+                    let smallestAreaStrength = self.strength(areas[smallestArea]);
+                    let thisAreaStrength = self.strength(areas[i]);
                     if (thisAreaStrength < smallestAreaStrength) {
                         smallestArea = i;
                     }
@@ -275,6 +276,26 @@ export class GopixCustomElement {
 
     }
 
+    surrounded(pixel) {
+        let self = this;
+        let surrounders = 0;
+        self.neighbours.forEach(function(neighbour){
+            let xy = [pixel[0] + neighbour[0], pixel[1] + neighbour[1]];
+            if (self.withinBounds(xy)) {
+                surrounders++;
+            }
+        });
+        return surrounders;
+    }
+
+    killEnclosedSingleOponent() {
+        if (this.countPixes(this.oponent) === 1) {
+            if (this.surrounded(this.oponent) > 2) {
+                console.log('yo lost');
+            }
+        }
+    }
+
     step(dx, dy) {
         console.clear();
         let newPixes = this.getNewPixes(dx, dy);
@@ -282,6 +303,7 @@ export class GopixCustomElement {
             this.weakenPixes();
             this.addNewPixes(newPixes);
             this.killIsolatedOponentPixes();
+            this.killEnclosedSingleOponent();
             this.turn();
         } else {
             this.ea.publish('illegal');
