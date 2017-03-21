@@ -20,6 +20,7 @@ export class GopixCustomElement {
 
         this.toplay = 'white';
         this.oponent = 'black';
+        this.game = 'off';
 
         this.maxX = 11;
         this.maxY = 11;
@@ -140,10 +141,13 @@ export class GopixCustomElement {
     }
 
     countPixes(player) {
-        let total = 0;
-        this.gopix.forEach(function(row) {
+        let self = this;
+        let total = [];
+        self.gopix.forEach(function(row) {
             row.forEach(function(pixel) {
-                if (pixel.name === player) total++;
+                if (pixel.name === player) {
+                    total.push([row.indexOf(pixel), self.gopix.indexOf(row)])
+                }
             });
         });
         return total;
@@ -190,7 +194,11 @@ export class GopixCustomElement {
                 return result;
             }
             let startRow = self.gopix.findIndex(firstOponentRow);
-            let startPix = self.gopix[startRow].findIndex(firstOponentPix);
+            let startPix = -1;
+            if (startRow > -1) {
+                startPix = self.gopix[startRow].findIndex(firstOponentPix);
+            }
+
             return [startPix, startRow];
         }
 
@@ -224,11 +232,11 @@ export class GopixCustomElement {
             let areas = [];
             let totalOponentPixes = self.countPixes(self.oponent);
             let firstOponentPix = findFirstOponentPix();
-            if (firstOponentPix.length) {
+            if (firstOponentPix[0] > -1) {
                 let area = getAdjacentArea(firstOponentPix);
                 areas = [area];
                 let areaCount = area.length;
-                while (areaCount < totalOponentPixes) {
+                while (areaCount < totalOponentPixes.length) {
                     firstOponentPix = findFirstOponentPix();
                     area = getAdjacentArea(firstOponentPix);
                     areas.push(area);
@@ -276,12 +284,12 @@ export class GopixCustomElement {
 
     }
 
-    surrounded(pixel) {
+    surrounded(pixel, color) {
         let self = this;
         let surrounders = 0;
         self.neighbours.forEach(function(neighbour){
             let xy = [pixel[0] + neighbour[0], pixel[1] + neighbour[1]];
-            if (self.withinBounds(xy)) {
+            if (color === pixel.name && self.withinBounds(xy)) {
                 surrounders++;
             }
         });
@@ -289,24 +297,37 @@ export class GopixCustomElement {
     }
 
     killEnclosedSingleOponent() {
-        if (this.countPixes(this.oponent) === 1) {
-            if (this.surrounded(this.oponent) > 2) {
+        let pixels = this.countPixes(this.oponent);
+        if (pixels.length === 1) {
+            if (this.surrounded(pixels[0], this.toplay) > 2) {
                 console.log('yo lost');
             }
         }
     }
 
+    canMove() {
+        return true;
+    }
+
     step(dx, dy) {
         console.clear();
-        let newPixes = this.getNewPixes(dx, dy);
-        if (newPixes.length) {
-            this.weakenPixes();
-            this.addNewPixes(newPixes);
-            this.killIsolatedOponentPixes();
-            this.killEnclosedSingleOponent();
-            this.turn();
+        if (this.canMove(this.toplay)) {
+            let newPixes = this.getNewPixes(dx, dy);
+            if (newPixes.length) {
+                this.weakenPixes();
+                this.addNewPixes(newPixes);
+                this.killIsolatedOponentPixes();
+                this.killEnclosedSingleOponent();
+                this.turn();
+                let playerCount = this.countPixes(this.toplay);
+                if (playerCount.length === 0) {
+                    console.log(this.toplay, ' lost')
+                }
+            } else {
+                this.ea.publish('illegal');
+            }
         } else {
-            this.ea.publish('illegal');
+            console.log(this.toplay, 'no more moves');
         }
     }
 
