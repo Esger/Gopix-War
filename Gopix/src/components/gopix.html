@@ -1,4 +1,5 @@
 <template>
+    <require from="components/start"></require>
     <require from="components/gopix.css"></require>
     <div class="row" repeat.for = "row of gopix">
         <span
@@ -7,4 +8,5 @@
             style.one-time="pixStyle(pix)"
             class="pix"></span>
     </div>
+    <start class="startButton"></start>
 </template>

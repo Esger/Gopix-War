@@ -17,6 +17,15 @@ export class GopixCustomElement {
         this.ea.subscribe('keyPressed', response => {
             this.move(response);
         });
+        this.ea.subscribe('game', response => {
+            switch (response) {
+                case 'start':
+                    this.setup();
+                    break;
+                default:
+
+            }
+        });
 
         this.toplay = 'white';
         this.oponent = 'black';
@@ -321,10 +330,10 @@ export class GopixCustomElement {
                 this.turn();
                 let playerCount = this.countPixes(this.toplay);
                 if (playerCount.length === 0) {
-                    console.log(this.toplay, ' lost')
+                    this.ea.publish('game', {'type' : 'lost', 'player' : this.toplay});
                 }
             } else {
-                this.ea.publish('illegal');
+                this.ea.publish('game', {'type' : 'illegal'});
             }
         } else {
             console.log(this.toplay, 'no more moves');
@@ -375,7 +384,7 @@ export class GopixCustomElement {
 
     attached() {
         this.reset();
-        this.setup();
+        // this.setup();
     }
 
 }

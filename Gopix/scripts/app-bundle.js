@@ -30,25 +30,37 @@ define('app',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'jquer
 
             this.handleKeyInput = function (event) {
                 var keycode = event.keyCode || event.which;
-                switch (keycode) {
-                    case _this.keys.left:
-                        _this.ea.publish('keyPressed', "left");
-                        break;
-                    case _this.keys.up:
-                        _this.ea.publish('keyPressed', "up");
-                        break;
-                    case _this.keys.right:
-                        _this.ea.publish('keyPressed', "right");
-                        break;
-                    case _this.keys.down:
-                        _this.ea.publish('keyPressed', "down");
-                        break;
-                    default:
-                        _this.ea.publish('keyPressed', "somekey");
+                if (_this.listen2keys) {
+                    switch (keycode) {
+                        case _this.keys.left:
+                            _this.ea.publish('keyPressed', "left");
+                            break;
+                        case _this.keys.up:
+                            _this.ea.publish('keyPressed', "up");
+                            break;
+                        case _this.keys.right:
+                            _this.ea.publish('keyPressed', "right");
+                            break;
+                        case _this.keys.down:
+                            _this.ea.publish('keyPressed', "down");
+                            break;
+                        default:
+                            _this.ea.publish('keyPressed', "somekey");
+                    }
                 }
             };
 
             this.ea = eventAggregator;
+            this.listen2keys = false;
+            this.ea.subscribe('game', function (response) {
+                switch (response) {
+                    case 'start':
+                        _this.listen2keys = true;
+                        break;
+                    default:
+
+                }
+            });
             this.message = 'Gopix Raiders';
             this.keys = {
                 'left': 37,
@@ -189,6 +201,15 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
 
             this.ea.subscribe('keyPressed', function (response) {
                 _this.move(response);
+            });
+            this.ea.subscribe('game', function (response) {
+                switch (response) {
+                    case 'start':
+                        _this.setup();
+                        break;
+                    default:
+
+                }
             });
 
             this.toplay = 'white';
@@ -489,10 +510,10 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     this.turn();
                     var playerCount = this.countPixes(this.toplay);
                     if (playerCount.length === 0) {
-                        console.log(this.toplay, ' lost');
+                        this.ea.publish('game', { 'type': 'lost', 'player': this.toplay });
                     }
                 } else {
-                    this.ea.publish('illegal');
+                    this.ea.publish('game', { 'type': 'illegal' });
                 }
             } else {
                 console.log(this.toplay, 'no more moves');
@@ -539,7 +560,6 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
 
         GopixCustomElement.prototype.attached = function attached() {
             this.reset();
-            this.setup();
         };
 
         return GopixCustomElement;
@@ -574,8 +594,17 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 _this.color = response;
             });
 
-            this.ea.subscribe('illegal', function (response) {
-                _this.setTitleText(_this.getTitleData('illegal move'));
+            this.ea.subscribe('game', function (response) {
+                switch (response.type) {
+                    case 'illegal':
+                        _this.setTitleText(_this.getTitleData('illegal move'));
+                        break;
+                    case 'lost':
+                        _this.setTitleText(_this.getTitleData(response.player + 'lost'));
+                        break;
+                    default:
+
+                }
             });
             this.text = 'gopix raider';
             this.titleData = [];
@@ -643,6 +672,7 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 'name': 'y',
                 'data': [16, 25, 14, 4, 8, 16]
             }];
+            this.setTitleText(this.getTitleData(this.text));
         }
 
         HeaderCustomElement.prototype.setTitleText = function setTitleText(titleData) {
@@ -730,6 +760,38 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
         return HeaderCustomElement;
     }()) || _class);
 });
+define('components/start',['exports', 'aurelia-framework', 'aurelia-event-aggregator'], function (exports, _aureliaFramework, _aureliaEventAggregator) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.StartCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var _dec, _class;
+
+    var StartCustomElement = exports.StartCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator), _dec(_class = function () {
+        function StartCustomElement(eventAggregator) {
+            _classCallCheck(this, StartCustomElement);
+
+            this.ea = eventAggregator;
+            this.showStartButton = true;
+        }
+
+        StartCustomElement.prototype.startGame = function startGame() {
+            this.ea.publish('game', 'start');
+            this.showStartButton = false;
+        };
+
+        return StartCustomElement;
+    }()) || _class);
+});
 define('resources/index',["exports"], function (exports) {
   "use strict";
 
@@ -774,12 +836,14 @@ define('resources/binding-behaviors/keystrokes',['exports'], function (exports) 
         return Keystrokes;
     }();
 });
-define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tposition:relative;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\nheader{\n\tdisplay: block;\n}\n#logo{\n\twidth:527px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-size: cover;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n"; });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
-define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
+define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nbody, html{\n\theight:100%;\n\tmin-height:100%;\n}\na{outline:none;}\n#container{\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tposition:relative;\n\tmargin:0 auto;\n\twidth:750px;\n\theight:100%;\n\tmin-height:100%;\n\tbackground-color:#E3B32D;\n\toverflow:hidden;\n}\nheader{\n\tdisplay: block;\n}\n#logo{\n\twidth:527px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-size: cover;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n"; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/header\"></require>\n\t<div id=\"container\">\n\t\t<!-- <div id=\"logo\" class.bind=\"player\"></div> -->\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
-define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix {\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    width: 527px;\n    height: 527px;\n}\n\n.row {\n    flex: 0 0 47px;\n    display: flex;\n    justify-content: space-between;\n}\n\n.pix {\n    width: 47px;\n    height: 47px;\n    max-width: 47px;\n    max-height: 47px;\n    box-sizing: border-box;\n    border-radius: 3px;\n    border: 13px solid #3d89d9;\n    background-color: #3d89d9;\n    transition: all .2s;\n}\n.pix.red{\n    border: 1px solid red;\n}\n\n.pix:before {\n    content: '';\n    display: block;\n    box-sizing: border-box;\n    border-radius: 25px;\n    border: 2px solid transparent;\n    transition: all .2s;\n    position: relative;\n}\n\n.pix:not(.empty):before {\n    width: 100%;\n    height: 100%;\n}\n\n.pix.black:before {\n    border-color: rgba(0, 0, 0, 0.6);\n    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);\n}\n\n.pix.white:before {\n    border-width: 3px;\n    border-color: rgba(255, 255, 255, 0.5);\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);\n}\n"; });
-define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <span\n            repeat.for=\"pix of row\"\n            class.one-time=\"pix.name\"\n            style.one-time=\"pixStyle(pix)\"\n            class=\"pix\"></span>\n    </div>\n</template>\n"; });
+define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
+define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/start\"></require>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <span\n            repeat.for=\"pix of row\"\n            class.one-time=\"pix.name\"\n            style.one-time=\"pixStyle(pix)\"\n            class=\"pix\"></span>\n    </div>\n    <start class=\"startButton\"></start>\n</template>\n"; });
+define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix {\n\tposition: relative;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    width: 527px;\n    height: 527px;\n}\n\n.row {\n    flex: 0 0 47px;\n    display: flex;\n    justify-content: space-between;\n}\n\n.pix {\n    width: 47px;\n    height: 47px;\n    max-width: 47px;\n    max-height: 47px;\n    box-sizing: border-box;\n    border-radius: 3px;\n    border: 13px solid #3d89d9;\n    background-color: #3d89d9;\n    transition: all .2s;\n}\n.pix.red{\n    border: 1px solid red;\n}\n\n.pix:before {\n    content: '';\n    display: block;\n    box-sizing: border-box;\n    border-radius: 25px;\n    border: 2px solid transparent;\n    transition: all .2s;\n    position: relative;\n}\n\n.pix:not(.empty):before {\n    width: 100%;\n    height: 100%;\n}\n\n.pix.black:before {\n    border-color: rgba(0, 0, 0, 0.6);\n    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);\n}\n\n.pix.white:before {\n    border-width: 3px;\n    border-color: rgba(255, 255, 255, 0.5);\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);\n}\n"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar {\n    width: 527px;\n    height: 39px;\n    margin: 30px 0;\n    display: flex;\n}\n\n.pixelCol {\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n\n.pixelCol+.pixelCol {\n    margin-left: 1px;\n}\n\n.pixel {\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n    transition: all 1s;\n}\n\n.pixel:not(.off) {\n    box-shadow: 0 0 2px 0 rgba(0, 0, 0, .5);\n}\n\n.white .pixel.on {\n    background-color: #fff;\n}\n\n.black .pixel.on {\n    background-color: #000;\n}\n\n.pixel.off {\n    background-color: transparent;\n}\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\" class.bind=\"color\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\">\n\n            </div>\n        </div>\n    </div>\n</template>\n"; });
+define('text!components/start.css', ['module'], function(module) { module.exports = ".startButton{\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n    align-items: center;\n    position: absolute;\n    width: 100%;\n    height: 100%;\n    background-color: rgba(0, 0, 0, .6);\n    border-radius: 3px;\n    transition: all .3s ease;\n}\n.startButton.hide{\n    opacity: 0;\n    pointer-events: none;\n}\n.startButton button{\n    width: 100%;\n    height: 100%;\n    background-color: transparent;\n    background-image: url(/images/pijltjes.png);\n    background-position: center center;\n    background-repeat: no-repeat;\n    cursor: pointer;\n}\n"; });
+define('text!components/start.html', ['module'], function(module) { module.exports = "<template class.bind=\"showStartButton ? '' : 'hide'\">\n    <require from=\"components/start.css\"></require>\n    <button click.trigger=\"startGame()\" aria-hidden=\"true\"></button>\n</template>\n"; });
 //# sourceMappingURL=app-bundle.js.map

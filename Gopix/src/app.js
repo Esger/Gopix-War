@@ -12,6 +12,16 @@ export class App {
 
     constructor(eventAggregator) {
         this.ea = eventAggregator;
+        this.listen2keys = false;
+        this.ea.subscribe('game', response => {
+            switch (response) {
+                case 'start':
+                    this.listen2keys = true
+                    break;
+                default:
+
+            }
+        });
         this.message = 'Gopix Raiders';
         this.keys = {
             'left': 37,
@@ -31,21 +41,23 @@ export class App {
 
     handleKeyInput = (event) => {
         var keycode = event.keyCode || event.which; // also for cross-browser compatible
-        switch (keycode) {
-            case this.keys.left:
-                this.ea.publish('keyPressed', "left");
-                break;
-            case this.keys.up:
-                this.ea.publish('keyPressed', "up");
-                break;
-            case this.keys.right:
-                this.ea.publish('keyPressed', "right");
-                break;
-            case this.keys.down:
-                this.ea.publish('keyPressed', "down");
-                break;
-            default:
-                this.ea.publish('keyPressed', "somekey");
+        if (this.listen2keys) {
+            switch (keycode) {
+                case this.keys.left:
+                    this.ea.publish('keyPressed', "left");
+                    break;
+                case this.keys.up:
+                    this.ea.publish('keyPressed', "up");
+                    break;
+                case this.keys.right:
+                    this.ea.publish('keyPressed', "right");
+                    break;
+                case this.keys.down:
+                    this.ea.publish('keyPressed', "down");
+                    break;
+                default:
+                    this.ea.publish('keyPressed', "somekey");
+            }
         }
     }
 }

@@ -17,8 +17,18 @@ export class HeaderCustomElement {
             this.color = response;
         });
         // TODO make general event to display text in title
-        this.ea.subscribe('illegal', response => {
-            this.setTitleText(this.getTitleData('illegal move'));
+        this.ea.subscribe('game', response => {
+            switch (response.type) {
+                case 'illegal':
+                    this.setTitleText(this.getTitleData('illegal move'));
+                    break;
+                case 'lost':
+                    this.setTitleText(this.getTitleData(response.player + 'lost'));
+                    break;
+                default:
+
+            }
+
         });
         this.text = 'gopix raider';
         this.titleData = [];
@@ -107,6 +117,7 @@ export class HeaderCustomElement {
                 'data': [16, 25, 14, 4, 8, 16]
             }
         ]
+        this.setTitleText(this.getTitleData(this.text));
     }
 
     // shift new title into header
