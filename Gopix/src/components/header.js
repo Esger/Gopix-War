@@ -12,23 +12,22 @@ export class HeaderCustomElement {
     constructor(eventAggregator) {
         this.ea = eventAggregator;
         this.color = 'white';
-        this.ea.subscribe('player', response => {
-            this.setTitleText(this.getTitleData(response + ' plays'));
-            this.color = response;
-        });
-        // TODO make general event to display text in title
         this.ea.subscribe('game', response => {
             switch (response.type) {
                 case 'illegal':
                     this.setTitleText(this.getTitleData('illegal move'));
                     break;
-                case 'lost':
-                    this.setTitleText(this.getTitleData(response.player + 'lost'));
+                case 'win':
+                    this.setTitleText(this.getTitleData(response.player + ' wins'));
                     break;
                 default:
 
             }
 
+        });
+        this.ea.subscribe('player', response => {
+            this.setTitleText(this.getTitleData(response + ' plays'));
+            this.color = response;
         });
         this.text = 'gopix raider';
         this.titleData = [];
@@ -46,19 +45,23 @@ export class HeaderCustomElement {
             },
             {
                 'name': 'c',
-                'data': [31, 31, 17, 17, 10]
+                'data': [14, 31, 17, 17, 10]
             },
             {
                 'name': 'd',
-                'data': [31, 31, 17, 27, 14]
+                'data': [31, 31, 17, 17, 14]
             },
             {
                 'name': 'e',
                 'data': [31, 31, 21, 21, 1]
             },
             {
+                'name': 'f',
+                'data': [31, 31, 20, 20]
+            },
+            {
                 'name': 'g',
-                'data': [31, 31, 17, 21, 7]
+                'data': [14, 31, 17, 21, 7]
             },
             {
                 'name': 'h',
@@ -67,6 +70,10 @@ export class HeaderCustomElement {
             {
                 'name': 'i',
                 'data': [31, 15]
+            },
+            {
+                'name': 'j',
+                'data': [2, 1, 31, 30]
             },
             {
                 'name': 'k',
@@ -81,12 +88,20 @@ export class HeaderCustomElement {
                 'data': [7, 28, 8, 28, 7]
             },
             {
+                'name': 'n',
+                'data': [31, 31, 12, 6, 15]
+            },
+            {
                 'name': 'o',
-                'data': [31, 31, 17, 17, 15]
+                'data': [14, 31, 17, 17, 14]
             },
             {
                 'name': 'p',
                 'data': [31, 31, 20, 20, 8]
+            },
+            {
+                'name': 'q',
+                'data': [14, 31, 17, 18, 13]
             },
             {
                 'name': 'r',
@@ -99,6 +114,10 @@ export class HeaderCustomElement {
             {
                 'name': 't',
                 'data': [16, 31, 31, 16, 16]
+            },
+            {
+                'name': 'u',
+                'data': [30, 31, 1, 1, 30]
             },
             {
                 'name': 'v',
@@ -115,6 +134,10 @@ export class HeaderCustomElement {
             {
                 'name': 'y',
                 'data': [16, 25, 14, 4, 8, 16]
+            },
+            {
+                'name': 'z',
+                'data': [17, 19, 23, 29, 25, 17]
             }
         ]
         this.setTitleText(this.getTitleData(this.text));

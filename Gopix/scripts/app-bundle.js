@@ -53,9 +53,12 @@ define('app',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'jquer
             this.ea = eventAggregator;
             this.listen2keys = false;
             this.ea.subscribe('game', function (response) {
-                switch (response) {
+                switch (response.type) {
                     case 'start':
                         _this.listen2keys = true;
+                        break;
+                    case 'win':
+                        _this.listen2keys = false;
                         break;
                     default:
 
@@ -203,8 +206,9 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 _this.move(response);
             });
             this.ea.subscribe('game', function (response) {
-                switch (response) {
+                switch (response.type) {
                     case 'start':
+                        _this.emptyBoard();
                         _this.setup();
                         break;
                     default:
@@ -473,13 +477,16 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             }
         };
 
-        GopixCustomElement.prototype.surrounded = function surrounded(pixel, color) {
+        GopixCustomElement.prototype.surrounded = function surrounded(pixel) {
             var self = this;
             var surrounders = 0;
             self.neighbours.forEach(function (neighbour) {
                 var xy = [pixel[0] + neighbour[0], pixel[1] + neighbour[1]];
-                if (color === pixel.name && self.withinBounds(xy)) {
-                    surrounders++;
+                if (self.withinBounds(xy)) {
+                    var color = self.gopix[xy[1]][xy[0]].name;
+                    if (color === self.toplay) {
+                        surrounders++;
+                    }
                 }
             });
             return surrounders;
@@ -488,10 +495,12 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         GopixCustomElement.prototype.killEnclosedSingleOponent = function killEnclosedSingleOponent() {
             var pixels = this.countPixes(this.oponent);
             if (pixels.length === 1) {
-                if (this.surrounded(pixels[0], this.toplay) > 2) {
+                if (this.surrounded(pixels[0]) > 2) {
                     console.log('yo lost');
+                    return true;
                 }
             }
+            return false;
         };
 
         GopixCustomElement.prototype.canMove = function canMove() {
@@ -506,17 +515,24 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     this.weakenPixes();
                     this.addNewPixes(newPixes);
                     this.killIsolatedOponentPixes();
-                    this.killEnclosedSingleOponent();
-                    this.turn();
-                    var playerCount = this.countPixes(this.toplay);
-                    if (playerCount.length === 0) {
-                        this.ea.publish('game', { 'type': 'lost', 'player': this.toplay });
+                    if (this.killEnclosedSingleOponent()) {
+                        console.log(this.oponent, 'no pieces');
+                        this.game = 'off';
+                        this.ea.publish('game', { 'type': 'win', 'player': this.toplay });
                     }
+                    var pixCount = this.countPixes(this.oponent);
+                    if (pixCount.length === 0) {
+                        console.log(this.oponent, 'no pieces');
+                        this.game = 'off';
+                        this.ea.publish('game', { 'type': 'win', 'player': this.toplay });
+                    }
+                    this.turn();
                 } else {
                     this.ea.publish('game', { 'type': 'illegal' });
                 }
             } else {
                 console.log(this.toplay, 'no more moves');
+                this.ea.publish('game', { 'type': 'win', 'player': this.oponent });
             }
         };
 
@@ -528,7 +544,9 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             }
         };
 
-        GopixCustomElement.prototype.reset = function reset() {
+        GopixCustomElement.prototype.emptyBoard = function emptyBoard() {
+            (0, _jquery2.default)('.pix').removeClass('white black');
+            this.gopix = [];
             var newPix = {
                 "name": "empty",
                 "strength": 0
@@ -539,6 +557,10 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     this.gopix[y].push(newPix);
                 }
             }
+        };
+
+        GopixCustomElement.prototype.reset = function reset() {
+            this.emptyBoard();
             this.gopix[3][3] = {
                 "name": "white",
                 "strength": this.playerStrength['white']
@@ -550,6 +572,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         };
 
         GopixCustomElement.prototype.setup = function setup() {
+            this.game = 'on';
             var newPixes = [[3, 3, 5]];
             this.addNewPixes(newPixes);
             this.turn();
@@ -589,22 +612,21 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
 
             this.ea = eventAggregator;
             this.color = 'white';
-            this.ea.subscribe('player', function (response) {
-                _this.setTitleText(_this.getTitleData(response + ' plays'));
-                _this.color = response;
-            });
-
             this.ea.subscribe('game', function (response) {
                 switch (response.type) {
                     case 'illegal':
                         _this.setTitleText(_this.getTitleData('illegal move'));
                         break;
-                    case 'lost':
-                        _this.setTitleText(_this.getTitleData(response.player + 'lost'));
+                    case 'win':
+                        _this.setTitleText(_this.getTitleData(response.player + ' wins'));
                         break;
                     default:
 
                 }
+            });
+            this.ea.subscribe('player', function (response) {
+                _this.setTitleText(_this.getTitleData(response + ' plays'));
+                _this.color = response;
             });
             this.text = 'gopix raider';
             this.titleData = [];
@@ -619,22 +641,28 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 'data': [31, 31, 21, 21, 11]
             }, {
                 'name': 'c',
-                'data': [31, 31, 17, 17, 10]
+                'data': [14, 31, 17, 17, 10]
             }, {
                 'name': 'd',
-                'data': [31, 31, 17, 27, 14]
+                'data': [31, 31, 17, 17, 14]
             }, {
                 'name': 'e',
                 'data': [31, 31, 21, 21, 1]
             }, {
+                'name': 'f',
+                'data': [31, 31, 20, 20]
+            }, {
                 'name': 'g',
-                'data': [31, 31, 17, 21, 7]
+                'data': [14, 31, 17, 21, 7]
             }, {
                 'name': 'h',
                 'data': [31, 31, 4, 4, 15]
             }, {
                 'name': 'i',
                 'data': [31, 15]
+            }, {
+                'name': 'j',
+                'data': [2, 1, 31, 30]
             }, {
                 'name': 'k',
                 'data': [31, 31, 12, 6, 11, 17]
@@ -645,11 +673,17 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 'name': 'm',
                 'data': [7, 28, 8, 28, 7]
             }, {
+                'name': 'n',
+                'data': [31, 31, 12, 6, 15]
+            }, {
                 'name': 'o',
-                'data': [31, 31, 17, 17, 15]
+                'data': [14, 31, 17, 17, 14]
             }, {
                 'name': 'p',
                 'data': [31, 31, 20, 20, 8]
+            }, {
+                'name': 'q',
+                'data': [14, 31, 17, 18, 13]
             }, {
                 'name': 'r',
                 'data': [31, 31, 20, 22, 9]
@@ -659,6 +693,9 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
             }, {
                 'name': 't',
                 'data': [16, 31, 31, 16, 16]
+            }, {
+                'name': 'u',
+                'data': [30, 31, 1, 1, 30]
             }, {
                 'name': 'v',
                 'data': [28, 6, 1, 6, 28]
@@ -671,6 +708,9 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
             }, {
                 'name': 'y',
                 'data': [16, 25, 14, 4, 8, 16]
+            }, {
+                'name': 'z',
+                'data': [17, 19, 23, 29, 25, 17]
             }];
             this.setTitleText(this.getTitleData(this.text));
         }
@@ -778,14 +818,25 @@ define('components/start',['exports', 'aurelia-framework', 'aurelia-event-aggreg
 
     var StartCustomElement = exports.StartCustomElement = (_dec = (0, _aureliaFramework.inject)(_aureliaEventAggregator.EventAggregator), _dec(_class = function () {
         function StartCustomElement(eventAggregator) {
+            var _this = this;
+
             _classCallCheck(this, StartCustomElement);
 
             this.ea = eventAggregator;
             this.showStartButton = true;
+            this.ea.subscribe('game', function (response) {
+                switch (response.type) {
+                    case 'win':
+                        _this.showStartButton = true;
+                        break;
+                    default:
+
+                }
+            });
         }
 
         StartCustomElement.prototype.startGame = function startGame() {
-            this.ea.publish('game', 'start');
+            this.ea.publish('game', { 'type': 'start' });
             this.showStartButton = false;
         };
 

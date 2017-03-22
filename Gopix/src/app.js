@@ -14,9 +14,12 @@ export class App {
         this.ea = eventAggregator;
         this.listen2keys = false;
         this.ea.subscribe('game', response => {
-            switch (response) {
+            switch (response.type) {
                 case 'start':
-                    this.listen2keys = true
+                    this.listen2keys = true;
+                    break;
+                case 'win':
+                    this.listen2keys = false;
                     break;
                 default:
 

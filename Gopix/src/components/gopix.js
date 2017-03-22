@@ -18,8 +18,9 @@ export class GopixCustomElement {
             this.move(response);
         });
         this.ea.subscribe('game', response => {
-            switch (response) {
+            switch (response.type) {
                 case 'start':
+                    this.emptyBoard();
                     this.setup();
                     break;
                 default:
@@ -293,13 +294,16 @@ export class GopixCustomElement {
 
     }
 
-    surrounded(pixel, color) {
+    surrounded(pixel) {
         let self = this;
         let surrounders = 0;
         self.neighbours.forEach(function(neighbour){
             let xy = [pixel[0] + neighbour[0], pixel[1] + neighbour[1]];
-            if (color === pixel.name && self.withinBounds(xy)) {
-                surrounders++;
+            if (self.withinBounds(xy)) {
+                let color = self.gopix[xy[1]][xy[0]].name;
+                if (color === self.toplay) {
+                    surrounders++;
+                }
             }
         });
         return surrounders;
@@ -308,10 +312,12 @@ export class GopixCustomElement {
     killEnclosedSingleOponent() {
         let pixels = this.countPixes(this.oponent);
         if (pixels.length === 1) {
-            if (this.surrounded(pixels[0], this.toplay) > 2) {
+            if (this.surrounded(pixels[0]) > 2) {
                 console.log('yo lost');
+                return true;
             }
         }
+        return false;
     }
 
     canMove() {
@@ -326,17 +332,24 @@ export class GopixCustomElement {
                 this.weakenPixes();
                 this.addNewPixes(newPixes);
                 this.killIsolatedOponentPixes();
-                this.killEnclosedSingleOponent();
-                this.turn();
-                let playerCount = this.countPixes(this.toplay);
-                if (playerCount.length === 0) {
-                    this.ea.publish('game', {'type' : 'lost', 'player' : this.toplay});
+                if (this.killEnclosedSingleOponent()) {
+                    console.log(this.oponent, 'no pieces');
+                    this.game = 'off';
+                    this.ea.publish('game', {'type' : 'win', 'player' : this.toplay});
                 }
+                let pixCount = this.countPixes(this.oponent);
+                if (pixCount.length === 0) {
+                    console.log(this.oponent, 'no pieces');
+                    this.game = 'off';
+                    this.ea.publish('game', {'type' : 'win', 'player' : this.toplay});
+                }
+                this.turn();
             } else {
                 this.ea.publish('game', {'type' : 'illegal'});
             }
         } else {
             console.log(this.toplay, 'no more moves');
+            this.ea.publish('game', {'type' : 'win', 'player' : this.oponent});
         }
     }
 
@@ -347,8 +360,10 @@ export class GopixCustomElement {
             console.table(arrr[i]);
         }
     }
-    // setup the board
-    reset() {
+
+    emptyBoard() {
+        $('.pix').removeClass('white black');
+        this.gopix = [];
         let newPix = {
             "name": "empty",
             "strength": 0
@@ -359,6 +374,11 @@ export class GopixCustomElement {
                 this.gopix[y].push(newPix);
             }
         }
+    }
+
+    // setup the board
+    reset() {
+        this.emptyBoard();
         this.gopix[3][3] = {
             "name": "white",
             "strength": this.playerStrength['white']
@@ -370,6 +390,7 @@ export class GopixCustomElement {
     }
 
     setup() {
+        this.game = 'on';
         let newPixes = [
             [3, 3, 5]
         ];
