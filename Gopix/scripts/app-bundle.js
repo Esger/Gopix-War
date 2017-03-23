@@ -208,8 +208,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             this.ea.subscribe('game', function (response) {
                 switch (response.type) {
                     case 'start':
-                        _this.emptyBoard();
-                        _this.setup();
+                        _this.reset();
                         break;
                     default:
 
@@ -357,9 +356,10 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         };
 
         GopixCustomElement.prototype.strength = function strength(area) {
+            var self = this;
             var strength = 0;
             area.forEach(function (xy) {
-                strength += this.gopix[xy[1]][xy[0]].strength;
+                strength += self.gopix[xy[1]][xy[0]].strength;
             });
             return strength;
         };
@@ -487,6 +487,8 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     if (color === self.toplay) {
                         surrounders++;
                     }
+                } else {
+                    surrounders++;
                 }
             });
             return surrounders;
@@ -495,7 +497,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         GopixCustomElement.prototype.killEnclosedSingleOponent = function killEnclosedSingleOponent() {
             var pixels = this.countPixes(this.oponent);
             if (pixels.length === 1) {
-                if (this.surrounded(pixels[0]) > 2) {
+                if (this.surrounded(pixels[0]) > 3) {
                     console.log('yo lost');
                     return true;
                 }
@@ -561,6 +563,9 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
 
         GopixCustomElement.prototype.reset = function reset() {
             this.emptyBoard();
+            if (this.toplay === 'black') {
+                this.turn();
+            }
             this.gopix[3][3] = {
                 "name": "white",
                 "strength": this.playerStrength['white']
@@ -569,6 +574,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 "name": "black",
                 "strength": this.playerStrength['black']
             };
+            this.setup();
         };
 
         GopixCustomElement.prototype.setup = function setup() {
@@ -612,21 +618,28 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
 
             this.ea = eventAggregator;
             this.color = 'white';
+            this.keepMoving = true;
             this.ea.subscribe('game', function (response) {
                 switch (response.type) {
                     case 'illegal':
                         _this.setTitleText(_this.getTitleData('illegal move'));
                         break;
                     case 'win':
+                        _this.keepMoving = false;
                         _this.setTitleText(_this.getTitleData(response.player + ' wins'));
+                        break;
+                    case 'start':
+                        _this.reset();
                         break;
                     default:
 
                 }
             });
             this.ea.subscribe('player', function (response) {
-                _this.setTitleText(_this.getTitleData(response + ' plays'));
-                _this.color = response;
+                if (_this.keepMoving) {
+                    _this.setTitleText(_this.getTitleData(response + ' plays'));
+                    _this.color = response;
+                }
             });
             this.text = 'gopix raider';
             this.titleData = [];
@@ -714,6 +727,12 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
             }];
             this.setTitleText(this.getTitleData(this.text));
         }
+
+        HeaderCustomElement.prototype.reset = function reset() {
+            this.color = 'white';
+            this.keepMoving = true;
+            this.setTitleText(this.getTitleData(this.color + ' plays'));
+        };
 
         HeaderCustomElement.prototype.setTitleText = function setTitleText(titleData) {
             this.titleData = titleData;
@@ -836,7 +855,7 @@ define('components/start',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         }
 
         StartCustomElement.prototype.startGame = function startGame() {
-            this.ea.publish('game', { 'type': 'start' });
+            this.ea.publish('game', { 'type': 'start', 'player': 'white' });
             this.showStartButton = false;
         };
 

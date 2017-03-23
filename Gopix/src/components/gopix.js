@@ -20,8 +20,8 @@ export class GopixCustomElement {
         this.ea.subscribe('game', response => {
             switch (response.type) {
                 case 'start':
-                    this.emptyBoard();
-                    this.setup();
+                    // this.emptyBoard();
+                    this.reset();
                     break;
                 default:
 
@@ -168,9 +168,10 @@ export class GopixCustomElement {
     }
 
     strength(area) {
+        let self = this;
         let strength = 0;
         area.forEach(function(xy) {
-            strength += this.gopix[xy[1]][xy[0]].strength;
+            strength += self.gopix[xy[1]][xy[0]].strength;
         });
         return strength;
     }
@@ -304,6 +305,8 @@ export class GopixCustomElement {
                 if (color === self.toplay) {
                     surrounders++;
                 }
+            } else {
+                surrounders++;
             }
         });
         return surrounders;
@@ -312,7 +315,7 @@ export class GopixCustomElement {
     killEnclosedSingleOponent() {
         let pixels = this.countPixes(this.oponent);
         if (pixels.length === 1) {
-            if (this.surrounded(pixels[0]) > 2) {
+            if (this.surrounded(pixels[0]) > 3) {
                 console.log('yo lost');
                 return true;
             }
@@ -321,6 +324,7 @@ export class GopixCustomElement {
     }
 
     canMove() {
+        // TODO implementeren
         return true;
     }
 
@@ -379,6 +383,9 @@ export class GopixCustomElement {
     // setup the board
     reset() {
         this.emptyBoard();
+        if (this.toplay === 'black') {
+            this.turn();
+        }
         this.gopix[3][3] = {
             "name": "white",
             "strength": this.playerStrength['white']
@@ -387,6 +394,7 @@ export class GopixCustomElement {
             "name": "black",
             "strength": this.playerStrength['black']
         };
+        this.setup();
     }
 
     setup() {

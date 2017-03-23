@@ -12,13 +12,18 @@ export class HeaderCustomElement {
     constructor(eventAggregator) {
         this.ea = eventAggregator;
         this.color = 'white';
+        this.keepMoving = true;
         this.ea.subscribe('game', response => {
             switch (response.type) {
                 case 'illegal':
                     this.setTitleText(this.getTitleData('illegal move'));
                     break;
                 case 'win':
+                    this.keepMoving = false;
                     this.setTitleText(this.getTitleData(response.player + ' wins'));
+                    break;
+                case 'start':
+                    this.reset();
                     break;
                 default:
 
@@ -26,8 +31,10 @@ export class HeaderCustomElement {
 
         });
         this.ea.subscribe('player', response => {
-            this.setTitleText(this.getTitleData(response + ' plays'));
-            this.color = response;
+            if (this.keepMoving) {
+                this.setTitleText(this.getTitleData(response + ' plays'));
+                this.color = response;
+            }
         });
         this.text = 'gopix raider';
         this.titleData = [];
@@ -141,6 +148,12 @@ export class HeaderCustomElement {
             }
         ]
         this.setTitleText(this.getTitleData(this.text));
+    }
+
+    reset(){
+        this.color = 'white'; // zou niet de verantwoordelijkheid van header moeten zijn
+        this.keepMoving = true;
+        this.setTitleText(this.getTitleData(this.color + ' plays'));
     }
 
     // shift new title into header

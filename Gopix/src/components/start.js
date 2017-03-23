@@ -24,7 +24,7 @@ export class StartCustomElement {
     }
 
     startGame(){
-        this.ea.publish('game', {'type' : 'start'});
+        this.ea.publish('game', {'type' : 'start', 'player': 'white'});
         this.showStartButton = false;
     }
 }
