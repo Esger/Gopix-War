@@ -33,21 +33,68 @@ export class App {
             'down': 40
         };
         this.scale = "";
+        this.touchEvent = {
+            'startX' : null,
+            'startY' : null,
+            'endX' : null,
+            'endY' : null,
+        };
     }
 
-    handleTouchstart() {
-        console.log('yo');
+    handleSwipe() {
+        let thresHold = 50;
+        let startX = this.touchEvent.startX;
+        let startY = this.touchEvent.startY;
+        let dX = this.touchEvent.endX - this.touchEvent.startX;
+        let dY = this.touchEvent.endY - this.touchEvent.startY;
+        let vertical = (Math.abs(dX) < Math.abs(dY));
+        let horizontal = (Math.abs(dX) > Math.abs(dY));
+        let left = (dX < -thresHold && Math.abs(dY) < thresHold);
+        let right = (dX > thresHold && Math.abs(dY) < thresHold);
+        let up = (dY < -thresHold && Math.abs(dX) < thresHold);
+        let down = (dY > thresHold && Math.abs(dX) < thresHold);
+        if (vertical) {
+            if (up) {
+                this.ea.publish('keyPressed', "up");
+            }
+            if (down) {
+                this.ea.publish('keyPressed', "down");
+            }
+        }
+        if (horizontal) {
+            if (left) {
+                this.ea.publish('keyPressed', "left");
+            }
+            if (right) {
+                this.ea.publish('keyPressed', "right");
+            }
+        }
     }
 
     activate() {
-        document.addEventListener('keydown', this.handleKeyInput, true);
-        $('body').on('touchstart', this.handleTouchstart);
+        let self = this;
+
+        document.addEventListener('keydown', self.handleKeyInput, true);
+
+        $('body').on('touchstart', function(event){
+            if (self.listen2keys) {
+                self.touchEvent.startX = event.originalEvent.touches[0].clientX;
+                self.touchEvent.startY = event.originalEvent.touches[0].clientY;
+            }
+        });
+        $('body').on('touchend', function(event){
+            if (self.listen2keys) {
+                self.touchEvent.endX = event.originalEvent.changedTouches[0].clientX;
+                self.touchEvent.endY = event.originalEvent.changedTouches[0].clientY;
+                self.handleSwipe();
+            }
+        });
     }
 
     deactivate() {
         document.removeEventListener('keydown', this.handleKeyInput);
-        $('body').off('touchstart', this.handleTouchstart);
-
+        $('body').off('touchstart');
+        $('body').off('touchend');
     }
 
     handleKeyInput = (event) => {
@@ -89,7 +136,7 @@ export class App {
 
     setSize() {
         this.scale = this.getScale();
-        $('body').css(this.scale);
+        $('board').css(this.scale);
     }
 
     attached() {

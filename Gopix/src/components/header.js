@@ -116,11 +116,11 @@ export class HeaderCustomElement {
             },
             {
                 'name': 's',
-                'data': [29, 29, 21, 23, 23]
+                'data': [29, 29, 21, 23, 7]
             },
             {
                 'name': 't',
-                'data': [16, 31, 31, 16, 16]
+                'data': [16, 16, 31, 31, 16]
             },
             {
                 'name': 'u',
@@ -140,7 +140,7 @@ export class HeaderCustomElement {
             },
             {
                 'name': 'y',
-                'data': [16, 25, 14, 4, 8, 16]
+                'data': [16, 25, 14, 4, 8]
             },
             {
                 'name': 'z',

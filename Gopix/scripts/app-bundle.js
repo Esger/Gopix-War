@@ -72,20 +72,68 @@ define('app',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'jquer
                 'down': 40
             };
             this.scale = "";
+            this.touchEvent = {
+                'startX': null,
+                'startY': null,
+                'endX': null,
+                'endY': null
+            };
         }
 
-        App.prototype.handleTouchstart = function handleTouchstart() {
-            console.log('yo');
+        App.prototype.handleSwipe = function handleSwipe() {
+            var thresHold = 50;
+            var startX = this.touchEvent.startX;
+            var startY = this.touchEvent.startY;
+            var dX = this.touchEvent.endX - this.touchEvent.startX;
+            var dY = this.touchEvent.endY - this.touchEvent.startY;
+            var vertical = Math.abs(dX) < Math.abs(dY);
+            var horizontal = Math.abs(dX) > Math.abs(dY);
+            var left = dX < -thresHold && Math.abs(dY) < thresHold;
+            var right = dX > thresHold && Math.abs(dY) < thresHold;
+            var up = dY < -thresHold && Math.abs(dX) < thresHold;
+            var down = dY > thresHold && Math.abs(dX) < thresHold;
+            if (vertical) {
+                if (up) {
+                    this.ea.publish('keyPressed', "up");
+                }
+                if (down) {
+                    this.ea.publish('keyPressed', "down");
+                }
+            }
+            if (horizontal) {
+                if (left) {
+                    this.ea.publish('keyPressed', "left");
+                }
+                if (right) {
+                    this.ea.publish('keyPressed', "right");
+                }
+            }
         };
 
         App.prototype.activate = function activate() {
-            document.addEventListener('keydown', this.handleKeyInput, true);
-            (0, _jquery2.default)('body').on('touchstart', this.handleTouchstart);
+            var self = this;
+
+            document.addEventListener('keydown', self.handleKeyInput, true);
+
+            (0, _jquery2.default)('body').on('touchstart', function (event) {
+                if (self.listen2keys) {
+                    self.touchEvent.startX = event.originalEvent.touches[0].clientX;
+                    self.touchEvent.startY = event.originalEvent.touches[0].clientY;
+                }
+            });
+            (0, _jquery2.default)('body').on('touchend', function (event) {
+                if (self.listen2keys) {
+                    self.touchEvent.endX = event.originalEvent.changedTouches[0].clientX;
+                    self.touchEvent.endY = event.originalEvent.changedTouches[0].clientY;
+                    self.handleSwipe();
+                }
+            });
         };
 
         App.prototype.deactivate = function deactivate() {
             document.removeEventListener('keydown', this.handleKeyInput);
-            (0, _jquery2.default)('body').off('touchstart', this.handleTouchstart);
+            (0, _jquery2.default)('body').off('touchstart');
+            (0, _jquery2.default)('body').off('touchend');
         };
 
         App.prototype.getScale = function getScale() {
@@ -105,7 +153,7 @@ define('app',['exports', 'aurelia-framework', 'aurelia-event-aggregator', 'jquer
 
         App.prototype.setSize = function setSize() {
             this.scale = this.getScale();
-            (0, _jquery2.default)('body').css(this.scale);
+            (0, _jquery2.default)('board').css(this.scale);
         };
 
         App.prototype.attached = function attached() {
@@ -734,10 +782,10 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 'data': [31, 31, 20, 22, 9]
             }, {
                 'name': 's',
-                'data': [29, 29, 21, 23, 23]
+                'data': [29, 29, 21, 23, 7]
             }, {
                 'name': 't',
-                'data': [16, 31, 31, 16, 16]
+                'data': [16, 16, 31, 31, 16]
             }, {
                 'name': 'u',
                 'data': [30, 31, 1, 1, 30]
@@ -752,7 +800,7 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 'data': [17, 26, 12, 6, 11, 17]
             }, {
                 'name': 'y',
-                'data': [16, 25, 14, 4, 8, 16]
+                'data': [16, 25, 14, 4, 8]
             }, {
                 'name': 'z',
                 'data': [17, 19, 23, 29, 25, 17]
@@ -939,13 +987,13 @@ define('resources/binding-behaviors/keystrokes',['exports'], function (exports) 
     }();
 });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
-define('text!app.css', ['module'], function(module) { module.exports = "*{\n\tmargin:0; border:0; padding:0;\n}\nhtml, body{\n\tdisplay: flex;\n\tflex-direction: column;\n\talign-items: center;\n\tjustify-content: flex-start;\n\tbackground-color:#E3B32D;\n}\na{outline:none;}\n#container{\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n\tposition:relative;\n\tmargin:0 auto;\n\twidth:527px;\n\theight:100%;\n\tmin-height:100%;\n\toverflow:hidden;\n}\nheader{\n\tdisplay: block;\n}\n#logo{\n\twidth:527px;\n\theight:39px;\n    margin: 15px 0;\n\tbackground-image:url(/images/logo.gif);\n\tbackground-repeat:no-repeat;\n\tbackground-size: cover;\n}\n#logo.white{\n\tbackground-position: 0 -40px;\n}\n#logo.black{\n\tbackground-position: 0 0;\n}\n"; });
+define('text!app.css', ['module'], function(module) { module.exports = "* {\n    margin: 0;\n    border: 0;\n    padding: 0;\n}\n\nhtml,\nbody {\n    height: 90vh;\n    width: 100vw;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    justify-content: flex-start;\n    background-color: #E3B32D;\n}\n\nbody {\n    -webkit-overflow-scrolling: touch;\n}\n\na {\n    outline: none;\n}\n\n#container {\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n    position: relative;\n    margin: 0 auto;\n    width: 527px;\n    min-height: 100vh;\n    overflow: hidden;\n}\n\nheader {\n    display: block;\n}\n\n#logo {\n    width: 527px;\n    height: 39px;\n    margin: 15px 0;\n    background-image: url(/images/logo.gif);\n    background-repeat: no-repeat;\n    background-size: cover;\n}\n\n#logo.white {\n    background-position: 0 -40px;\n}\n\n#logo.black {\n    background-position: 0 0;\n}\n"; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/header\"></require>\n\t<div id=\"container\">\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
 define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/start\"></require>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <span\n            repeat.for=\"pix of row\"\n            class.one-time=\"pix.name\"\n            style.one-time=\"pixStyle(pix)\"\n            class=\"pix\"></span>\n    </div>\n    <start class=\"startButton\"></start>\n</template>\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\" class.bind=\"color\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\">\n\n            </div>\n        </div>\n    </div>\n</template>\n"; });
 define('text!components/start.html', ['module'], function(module) { module.exports = "<template class.bind=\"showStartButton ? '' : 'hide'\">\n    <require from=\"components/start.css\"></require>\n    <button click.trigger=\"startGame()\" aria-hidden=\"true\"></button>\n</template>\n"; });
-define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix {\n\tposition: relative;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    width: 527px;\n    height: 527px;\n}\n\n.row {\n    flex: 0 0 47px;\n    display: flex;\n    justify-content: space-between;\n}\n\n.pix {\n    width: 47px;\n    height: 47px;\n    max-width: 47px;\n    max-height: 47px;\n    box-sizing: border-box;\n    border-radius: 3px;\n    border: 13px solid #3d89d9;\n    background-color: #3d89d9;\n    transition: all .2s;\n}\n.pix.red{\n    border: 1px solid red;\n}\n\n.pix:before {\n    content: '';\n    display: block;\n    box-sizing: border-box;\n    border-radius: 25px;\n    border: 2px solid transparent;\n    transition: all .2s;\n    position: relative;\n}\n\n.pix:not(.empty):before {\n    width: 100%;\n    height: 100%;\n}\n\n.pix.black:before {\n    border-color: rgba(0, 0, 0, 0.6);\n    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);\n}\n\n.pix.white:before {\n    border-width: 3px;\n    border-color: rgba(255, 255, 255, 0.5);\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);\n}\n"; });
+define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix {\n\tposition: relative;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    width: 526px;\n    height: 526px;\n}\n\n.row {\n    flex: 0 0 46px;\n    display: flex;\n    justify-content: space-between;\n}\n\n.pix {\n    width: 46px;\n    height: 46px;\n    max-width: 46px;\n    max-height: 46px;\n    box-sizing: border-box;\n    border-radius: 3px;\n    border: 13px solid #3d89d9;\n    background-color: #3d89d9;\n    transition: all .2s;\n}\n.pix.red{\n    border: 1px solid red;\n}\n\n.pix:before {\n    content: '';\n    display: block;\n    box-sizing: border-box;\n    border-radius: 25px;\n    border: 2px solid transparent;\n    transition: all .2s;\n    position: relative;\n}\n\n.pix:not(.empty):before {\n    width: 100%;\n    height: 100%;\n}\n\n.pix.black:before {\n    border-color: rgba(0, 0, 0, 0.6);\n    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);\n}\n\n.pix.white:before {\n    border-width: 3px;\n    border-color: rgba(255, 255, 255, 0.5);\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);\n}\n"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar {\n    width: 527px;\n    height: 39px;\n    margin: 30px 0;\n    display: flex;\n}\n\n.pixelCol {\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n\n.pixelCol+.pixelCol {\n    margin-left: 1px;\n}\n\n.pixel {\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n    transition: all 1s;\n}\n\n.pixel:not(.off) {\n    box-shadow: 0 0 2px 0 rgba(0, 0, 0, .5);\n}\n\n.white .pixel.on {\n    background-color: #fff;\n}\n\n.black .pixel.on {\n    background-color: #000;\n}\n\n.pixel.off {\n    background-color: transparent;\n}\n"; });
 define('text!components/start.css', ['module'], function(module) { module.exports = ".startButton{\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n    align-items: center;\n    position: absolute;\n    width: 100%;\n    height: 100%;\n    background-color: rgba(0, 0, 0, .6);\n    border-radius: 3px;\n    transition: all .3s ease;\n}\n.startButton.hide{\n    opacity: 0;\n    pointer-events: none;\n}\n.startButton button{\n    width: 100%;\n    height: 100%;\n    background-color: transparent;\n    background-image: url(/images/pijltjes.png);\n    background-position: center center;\n    background-repeat: no-repeat;\n    cursor: pointer;\n}\n"; });
 //# sourceMappingURL=app-bundle.js.map
