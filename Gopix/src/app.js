@@ -32,14 +32,22 @@ export class App {
             'right': 39,
             'down': 40
         };
+        this.scale = "";
+    }
+
+    handleTouchstart() {
+        console.log('yo');
     }
 
     activate() {
         document.addEventListener('keydown', this.handleKeyInput, true);
+        $('body').on('touchstart', this.handleTouchstart);
     }
 
     deactivate() {
         document.removeEventListener('keydown', this.handleKeyInput);
+        $('body').off('touchstart', this.handleTouchstart);
+
     }
 
     handleKeyInput = (event) => {
@@ -63,4 +71,84 @@ export class App {
             }
         }
     }
+
+    getScale() {
+        var screenWidth = $("html").width();
+        var boardWidth = $("#gopix").width();
+        var scale = Math.min(screenWidth / boardWidth, 1);
+
+        scale = Math.floor(scale * 10) / 10;
+        this.scale = scale;
+        return {
+            'transformOrigin': 'top',
+            '-webkit-transform': 'scale(' + scale + ', ' + scale + ')',
+            '-ms-transform': 'scale(' + scale + ', ' + scale + ')',
+            'transform': 'scale(' + scale + ', ' + scale + ')'
+        };
+    }
+
+    setSize() {
+        this.scale = this.getScale();
+        $('body').css(this.scale);
+    }
+
+    attached() {
+        this.setSize();
+        document.addEventListener('resize', this.setSize, true);
+    }
 }
+
+
+// angular.module("ngTouch", [])
+// .directive("ngTouchstart", function () {
+//     return {
+//         controller: ["$scope", "$element", function ($scope, $element) {
+//
+//             $element.bind("touchstart", onTouchStart);
+//             function onTouchStart(event) {
+//                 var method = $element.attr("ng-touchstart");
+//                 $scope.$event = event;
+//                 $scope.$apply(method);
+//             }
+//
+//         }]
+//     }
+// })
+// .directive("ngTouchmove", function () {
+//     return {
+//         controller: ["$scope", "$element", function ($scope, $element) {
+//
+//             $element.bind("touchstart", onTouchStart);
+//             function onTouchStart(event) {
+//                 event.preventDefault();
+//                 $element.bind("touchmove", onTouchMove);
+//                 $element.bind("touchend", onTouchEnd);
+//             }
+//             function onTouchMove(event) {
+//                 var method = $element.attr("ng-touchmove");
+//                 $scope.$event = event;
+//                 $scope.$apply(method);
+//             }
+//             function onTouchEnd(event) {
+//                 event.preventDefault();
+//                 $element.unbind("touchmove", onTouchMove);
+//                 $element.unbind("touchend", onTouchEnd);
+//             }
+//
+//         }]
+//     }
+// })
+// .directive("ngTouchend", function () {
+//     return {
+//         controller: ["$scope", "$element", function ($scope, $element) {
+//
+//             $element.bind("touchend", onTouchEnd);
+//             function onTouchEnd(event) {
+//                 var method = $element.attr("ng-touchend");
+//                 $scope.$event = event;
+//                 $scope.$apply(method);
+//             }
+//
+//         }]
+//     }
+// });
