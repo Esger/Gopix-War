@@ -36,6 +36,7 @@ export class GopixCustomElement {
         this.maxY = 11;
 
         this.maxStrength = 11;
+        this.gainStrength = 1;
 
         this.playerStrength = {
             'white': 5,
@@ -88,14 +89,22 @@ export class GopixCustomElement {
                     if (thisPix.strength > 0) {
                         let newX = x + dx;
                         let newY = y + dy;
+                        let targetPix = this.gopix[newY][newX];
                         if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
-                            let newStrength = (thisPix.strength < this.maxStrength) ? thisPix.strength + 1 : thisPix.strength;
+
+                            // Grow strength on every step
+                            // let newStrength = (thisPix.strength < this.maxStrength) ? thisPix.strength + this.gainStrength : thisPix.strength;
+
+                            // Grow strength by defeating adversary pixels
+                            let newStrength = (thisPix.strength < targetPix.strength) ? thisPix.strength + targetPix.strength : thisPix.strength;
+                            
+                            newStrength = (newStrength > this.maxStrength) ? this.maxStrength : newStrength;
                             let newPix = [newX, newY, newStrength];
-                            if (this.gopix[newY][newX].strength === 0) {
+                            if (targetPix.strength === 0) {
                                 newPixes.push(newPix);
                             } else {
-                                if (this.gopix[newY][newX].name == this.oponent) {
-                                    if (this.gopix[newY][newX].strength < thisPix.strength) {
+                                if (targetPix.name == this.oponent) {
+                                    if (targetPix.strength < thisPix.strength) {
                                         newPixes.push(newPix);
                                     }
                                 }
@@ -337,13 +346,13 @@ export class GopixCustomElement {
                 this.addNewPixes(newPixes);
                 this.killIsolatedOponentPixes();
                 if (this.killEnclosedSingleOponent()) {
-                    console.log(this.oponent, 'no pieces');
+                    // console.log(this.oponent, 'no pieces');
                     this.game = 'off';
                     this.ea.publish('game', {'type' : 'win', 'player' : this.toplay});
                 }
                 let pixCount = this.countPixes(this.oponent);
                 if (pixCount.length === 0) {
-                    console.log(this.oponent, 'no pieces');
+                    // console.log(this.oponent, 'no pieces');
                     this.game = 'off';
                     this.ea.publish('game', {'type' : 'win', 'player' : this.toplay});
                 }
@@ -352,7 +361,7 @@ export class GopixCustomElement {
                 this.ea.publish('game', {'type' : 'illegal'});
             }
         } else {
-            console.log(this.toplay, 'no more moves');
+            // console.log(this.toplay, 'no more moves');
             this.ea.publish('game', {'type' : 'win', 'player' : this.oponent});
         }
     }
