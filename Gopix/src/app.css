@@ -45,7 +45,7 @@ header {
     width: 527px;
     height: 39px;
     margin: 15px 0;
-    background-image: url(/images/logo.gif);
+    background-image: url(../images/logo.gif);
     background-repeat: no-repeat;
     background-size: cover;
 }
