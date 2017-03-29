@@ -36,7 +36,7 @@ export class GopixCustomElement {
         this.maxY = 11;
 
         this.maxStrength = 11;
-        this.gainStrength = 1;
+        this.gainStrength = 0;
 
         this.playerStrength = {
             'white': 5,
@@ -85,30 +85,16 @@ export class GopixCustomElement {
         for (let y = 0; y < this.maxY; y++) {
             for (let x = 0; x < this.maxX; x++) {
                 let thisPix = this.gopix[y][x];
-                if (thisPix.name === this.toplay) {
-                    if (thisPix.strength > 0) {
-                        let newX = x + dx;
-                        let newY = y + dy;
-                        let targetPix = this.gopix[newY][newX];
-                        if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
-
-                            // Grow strength on every step
-                            // let newStrength = (thisPix.strength < this.maxStrength) ? thisPix.strength + this.gainStrength : thisPix.strength;
-
-                            // Grow strength by defeating adversary pixels
-                            let newStrength = (thisPix.strength < targetPix.strength) ? thisPix.strength + targetPix.strength : thisPix.strength;
-                            
-                            newStrength = (newStrength > this.maxStrength) ? this.maxStrength : newStrength;
+                var newX = x + dx;
+                var newY = y + dy;
+                if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
+                    let targetPix = this.gopix[newY][newX];
+                    if (thisPix.name === this.toplay && targetPix.name !== this.toplay) {
+                        if (thisPix.strength >= targetPix.strength) {
+                            let newStrength = thisPix.strength + targetPix.strength + this.gainStrength;
+                            newStrength = newStrength > this.maxStrength ? this.maxStrength : newStrength;
                             let newPix = [newX, newY, newStrength];
-                            if (targetPix.strength === 0) {
-                                newPixes.push(newPix);
-                            } else {
-                                if (targetPix.name == this.oponent) {
-                                    if (targetPix.strength < thisPix.strength) {
-                                        newPixes.push(newPix);
-                                    }
-                                }
-                            }
+                            newPixes.push(newPix);
                         }
                     }
                 }

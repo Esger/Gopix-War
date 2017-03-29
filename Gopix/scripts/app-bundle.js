@@ -303,7 +303,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             this.maxY = 11;
 
             this.maxStrength = 11;
-            this.gainStrength = 1;
+            this.gainStrength = 0;
 
             this.playerStrength = {
                 'white': 5,
@@ -354,25 +354,16 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             for (var y = 0; y < this.maxY; y++) {
                 for (var x = 0; x < this.maxX; x++) {
                     var thisPix = this.gopix[y][x];
-                    if (thisPix.name === this.toplay) {
-                        if (thisPix.strength > 0) {
-                            var newX = x + dx;
-                            var newY = y + dy;
-                            var targetPix = this.gopix[newY][newX];
-                            if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
-                                var newStrength = thisPix.strength < targetPix.strength ? thisPix.strength + targetPix.strength : thisPix.strength;
-
+                    var newX = x + dx;
+                    var newY = y + dy;
+                    if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
+                        var targetPix = this.gopix[newY][newX];
+                        if (thisPix.name === this.toplay && targetPix.name !== this.toplay) {
+                            if (thisPix.strength >= targetPix.strength) {
+                                var newStrength = thisPix.strength + targetPix.strength + this.gainStrength;
                                 newStrength = newStrength > this.maxStrength ? this.maxStrength : newStrength;
                                 var newPix = [newX, newY, newStrength];
-                                if (targetPix.strength === 0) {
-                                    newPixes.push(newPix);
-                                } else {
-                                    if (targetPix.name == this.oponent) {
-                                        if (targetPix.strength < thisPix.strength) {
-                                            newPixes.push(newPix);
-                                        }
-                                    }
-                                }
+                                newPixes.push(newPix);
                             }
                         }
                     }
@@ -987,7 +978,7 @@ define('resources/binding-behaviors/keystrokes',['exports'], function (exports) 
         return Keystrokes;
     }();
 });
-define('text!app.css', ['module'], function(module) { module.exports = "* {\n    margin: 0;\n    border: 0;\n    padding: 0;\n}\n\nhtml,\nbody {\n\tposition: fixed;\n    height: 100vh;\n    width: 100vw;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    justify-content: flex-start;\n    background-color: #E3B32D;\n}\n\nbody {\n    -webkit-overflow-scrolling: touch;\n}\n\na {\n    outline: none;\n}\n\n#container {\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n    position: relative;\n    margin: 0 auto;\n    width: 527px;\n    min-height: 100vh;\n    overflow: hidden;\n}\n\nheader {\n    display: block;\n}\n\n#logo {\n    width: 527px;\n    height: 39px;\n    margin: 15px 0;\n    background-image: url(../images/logo.gif);\n    background-repeat: no-repeat;\n    background-size: cover;\n}\n\n#logo.white {\n    background-position: 0 -40px;\n}\n\n#logo.black {\n    background-position: 0 0;\n}\n"; });
+define('text!app.css', ['module'], function(module) { module.exports = "* {\n    margin: 0;\n    border: 0;\n    padding: 0;\n}\n\nhtml,\nbody {\n\tposition: fixed;\n    height: 100vh;\n    width: 100vw;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    justify-content: flex-start;\n    background-color: #E3B32D;\n}\n\nbody {\n    -webkit-overflow-scrolling: touch;\n}\n\na {\n    outline: none;\n}\n\n#container {\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n    position: relative;\n    margin: 0 auto;\n    width: 527px;\n    min-height: 100vh;\n    overflow: hidden;\n}\n\nheader {\n    display: block;\n}\n\n#logo {\n    width: 527px;\n    height: 39px;\n    margin: 15px 0;\n    background-image: url(/images/logo.gif);\n    background-repeat: no-repeat;\n    background-size: cover;\n}\n\n#logo.white {\n    background-position: 0 -40px;\n}\n\n#logo.black {\n    background-position: 0 0;\n}\n"; });
 define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/header\"></require>\n\t<div id=\"container\">\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
