@@ -1,0 +1,30 @@
+footer {
+    font-family: 'Trebuchet MS', Roboto, sans-serif;
+    align-self: stretch;
+}
+
+button {
+    float: right;
+    width: 46px;
+    height: 46px;
+    background-color: transparent;
+    font-size: 30px;
+    line-height: 46px;
+    color: #fff;
+    text-shadow: 0 0 1px #000;
+    cursor: pointer;
+}
+
+.helpTekst {
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 24px;
+    color: #fff;
+    text-shadow: 0 0 1px #000;
+    margin-top: 30px;
+}
+
+.helpTekst ul {
+    list-style-type: disc;
+    margin-left: 30px;
+}

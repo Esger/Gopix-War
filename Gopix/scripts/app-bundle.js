@@ -694,7 +694,7 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
             this.ea.subscribe('game', function (response) {
                 switch (response.type) {
                     case 'illegal':
-                        _this.setTitleText(_this.getTitleData('illegal move'));
+                        _this.setTitleText(_this.getTitleData('no can do'));
                         break;
                     case 'win':
                         _this.keepMoving = false;
@@ -786,7 +786,7 @@ define('components/header',['exports', 'aurelia-framework', 'aurelia-event-aggre
                 'data': [28, 6, 1, 6, 28]
             }, {
                 'name': 'w',
-                'data': [28, 7, 2, 7, 28]
+                'data': [16, 28, 7, 2, 7, 28]
             }, {
                 'name': 'x',
                 'data': [17, 26, 12, 6, 11, 17]
@@ -978,14 +978,49 @@ define('resources/binding-behaviors/keystrokes',['exports'], function (exports) 
         return Keystrokes;
     }();
 });
+define('components/footer',['exports', 'aurelia-framework'], function (exports, _aureliaFramework) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.FooterCustomElement = undefined;
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    var FooterCustomElement = exports.FooterCustomElement = function () {
+        function FooterCustomElement(eventAggregator) {
+            _classCallCheck(this, FooterCustomElement);
+
+            this.showHelpButton = true;
+            this.showHideButton = false;
+            this.showHelpText = false;
+        }
+
+        FooterCustomElement.prototype.toggleHelp = function toggleHelp() {
+            this.showHelpButton = !this.showHelpButton;
+            this.showHideButton = !this.showHideButton;
+            this.showHelpText = !this.showHelpText;
+        };
+
+        return FooterCustomElement;
+    }();
+});
 define('text!app.css', ['module'], function(module) { module.exports = "* {\n    margin: 0;\n    border: 0;\n    padding: 0;\n}\n\nhtml,\nbody {\n\tposition: fixed;\n    height: 100vh;\n    width: 100vw;\n    overflow: hidden;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    justify-content: flex-start;\n    background-color: #E3B32D;\n}\n\nbody {\n    -webkit-overflow-scrolling: touch;\n}\n\na {\n    outline: none;\n}\n\n#container {\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    align-items: center;\n    position: relative;\n    margin: 0 auto;\n    width: 527px;\n    min-height: 100vh;\n    overflow: hidden;\n}\n\nheader {\n    display: block;\n}\n\n#logo {\n    width: 527px;\n    height: 39px;\n    margin: 15px 0;\n    background-image: url(/images/logo.gif);\n    background-repeat: no-repeat;\n    background-size: cover;\n}\n\n#logo.white {\n    background-position: 0 -40px;\n}\n\n#logo.black {\n    background-position: 0 0;\n}\n"; });
-define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
+define('text!app.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"reset.css\"></require>\n    <require from=\"app.css\"></require>\n    <require from=\"components/board\"></require>\n    <board></board>\n</template>\n"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
-define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/header\"></require>\n\t<div id=\"container\">\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n\t</div>\n</template>\n"; });
+define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header\"></require>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/footer\"></require>\n\t<div id=\"container\">\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n        <footer></footer>\n\t</div>\n</template>\n"; });
 define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix {\n\tposition: relative;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    width: 526px;\n    height: 526px;\n}\n\n.row {\n    flex: 0 0 46px;\n    display: flex;\n    justify-content: space-between;\n}\n\n.pix {\n    width: 46px;\n    height: 46px;\n    max-width: 46px;\n    max-height: 46px;\n    box-sizing: border-box;\n    border-radius: 3px;\n    border: 13px solid #3d89d9;\n    background-color: #3d89d9;\n    transition: all .2s;\n}\n.pix.red{\n    border: 1px solid red;\n}\n\n.pix:before {\n    content: '';\n    display: block;\n    box-sizing: border-box;\n    border-radius: 25px;\n    border: 2px solid transparent;\n    transition: all .2s;\n    position: relative;\n}\n\n.pix:not(.empty):before {\n    width: 100%;\n    height: 100%;\n}\n\n.pix.black:before {\n    border-color: rgba(0, 0, 0, 0.6);\n    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);\n}\n\n.pix.white:before {\n    border-width: 3px;\n    border-color: rgba(255, 255, 255, 0.5);\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);\n}\n"; });
 define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/start\"></require>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <span\n            repeat.for=\"pix of row\"\n            class.one-time=\"pix.name\"\n            style.one-time=\"pixStyle(pix)\"\n            class=\"pix\"></span>\n    </div>\n    <start class=\"startButton\"></start>\n</template>\n"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar {\n    width: 527px;\n    height: 39px;\n    margin: 30px 0;\n    display: flex;\n}\n\n.pixelCol {\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n\n.pixelCol+.pixelCol {\n    margin-left: 1px;\n}\n\n.pixel {\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n    transition: all 1s;\n}\n\n.pixel:not(.off) {\n    box-shadow: 0 0 2px 0 rgba(0, 0, 0, .5);\n}\n\n.white .pixel.on {\n    background-color: #fff;\n}\n\n.black .pixel.on {\n    background-color: #000;\n}\n\n.pixel.off {\n    background-color: transparent;\n}\n"; });
-define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\" class.bind=\"color\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\">\n\n            </div>\n        </div>\n    </div>\n</template>\n"; });
+define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\" class.bind=\"color\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\"></div>\n        </div>\n    </div>\n</template>\n"; });
 define('text!components/start.css', ['module'], function(module) { module.exports = ".startButton{\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n    align-items: center;\n    position: absolute;\n    top: 0;\n    left: 0;\n    width: 100%;\n    height: 100%;\n    background-color: rgba(0, 0, 0, .6);\n    border-radius: 3px;\n    transition: all .3s ease;\n}\n.startButton.hide{\n    opacity: 0;\n    pointer-events: none;\n}\n.startButton button{\n    width: 100%;\n    height: 100%;\n    background-color: transparent;\n    background-image: url(/images/pijltjes.png);\n    background-position: center center;\n    background-repeat: no-repeat;\n    cursor: pointer;\n}\n"; });
 define('text!components/start.html', ['module'], function(module) { module.exports = "<template class.bind=\"showStartButton ? '' : 'hide'\">\n    <require from=\"components/start.css\"></require>\n    <button click.trigger=\"startGame()\" aria-hidden=\"true\"></button>\n</template>\n"; });
+define('text!components/footer.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/footer.css\"></require>\n    <button if.bind=\"showHelpButton\" click.delegate=\"toggleHelp()\">?</button>\n    <button if.bind=\"showHideButton\" click.delegate=\"toggleHelp()\">&times;</button>\n    <div if.bind=\"showHelpText\" class=\"helpTekst\">\n        <ul>\n            <li>Move with the arrow keys or by swiping</li>\n            <li>Defeat your oponent</li>\n            <li>Attacker wins from defender of equal size or smaller</li>\n            <li>Separated groups of pieces are lost</li>\n            <li>Last single enclosed piece is lost</li>\n        </ul>\n    </div>\n</template>\n"; });
+define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    font-family: 'Trebuchet MS', Roboto, sans-serif;\n    align-self: stretch;\n}\n\nbutton {\n    float: right;\n    width: 46px;\n    height: 46px;\n    background-color: transparent;\n    font-size: 30px;\n    line-height: 46px;\n    color: #fff;\n    text-shadow: 0 0 1px #000;\n    cursor: pointer;\n}\n\n.helpTekst {\n    font-weight: bold;\n    font-size: 18px;\n    line-height: 24px;\n    color: #fff;\n    text-shadow: 0 0 1px #000;\n    margin-top: 30px;\n}\n\n.helpTekst ul {\n    list-style-type: disc;\n    margin-left: 30px;\n}\n"; });
+define('text!reset.css', ['module'], function(module) { module.exports = "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\n\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed, \nfigure, figcaption, footer, header, hgroup, \nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n\tmargin: 0;\n\tpadding: 0;\n\tborder: 0;\n\tfont-size: 100%;\n\tfont: inherit;\n\tvertical-align: baseline;\n}\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure, \nfooter, header, hgroup, menu, nav, section {\n\tdisplay: block;\n}\nbody {\n\tline-height: 1;\n}\nol, ul {\n\tlist-style: none;\n}\nblockquote, q {\n\tquotes: none;\n}\nblockquote:before, blockquote:after,\nq:before, q:after {\n\tcontent: '';\n\tcontent: none;\n}\ntable {\n\tborder-collapse: collapse;\n\tborder-spacing: 0;\n}"; });
 //# sourceMappingURL=app-bundle.js.map
