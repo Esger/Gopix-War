@@ -76,7 +76,6 @@ export class GopixCustomElement {
 
     turn() {
         [this.oponent, this.toplay] = [this.toplay, this.oponent];
-        this.ea.publish('player', this.toplay);
     }
 
     getNewPixes(dx, dy) {
@@ -343,6 +342,7 @@ export class GopixCustomElement {
                     this.ea.publish('game', {'type' : 'win', 'player' : this.toplay});
                 }
                 this.turn();
+                this.ea.publish('player', this.toplay);
             } else {
                 this.ea.publish('game', {'type' : 'illegal'});
             }
