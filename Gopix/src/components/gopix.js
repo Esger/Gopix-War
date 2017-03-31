@@ -36,6 +36,7 @@ export class GopixCustomElement {
         this.maxY = 11;
 
         this.maxStrength = 11;
+        this.gainStrength = 0;
 
         this.playerStrength = {
             'white': 5,
@@ -84,22 +85,16 @@ export class GopixCustomElement {
         for (let y = 0; y < this.maxY; y++) {
             for (let x = 0; x < this.maxX; x++) {
                 let thisPix = this.gopix[y][x];
-                if (thisPix.name === this.toplay) {
-                    if (thisPix.strength > 0) {
-                        let newX = x + dx;
-                        let newY = y + dy;
-                        if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
-                            let newStrength = (thisPix.strength < this.maxStrength) ? thisPix.strength + 1 : thisPix.strength;
+                var newX = x + dx;
+                var newY = y + dy;
+                if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
+                    let targetPix = this.gopix[newY][newX];
+                    if (thisPix.name === this.toplay && targetPix.name !== this.toplay) {
+                        if (thisPix.strength >= targetPix.strength) {
+                            let newStrength = thisPix.strength + targetPix.strength + this.gainStrength;
+                            newStrength = newStrength > this.maxStrength ? this.maxStrength : newStrength;
                             let newPix = [newX, newY, newStrength];
-                            if (this.gopix[newY][newX].strength === 0) {
-                                newPixes.push(newPix);
-                            } else {
-                                if (this.gopix[newY][newX].name == this.oponent) {
-                                    if (this.gopix[newY][newX].strength < thisPix.strength) {
-                                        newPixes.push(newPix);
-                                    }
-                                }
-                            }
+                            newPixes.push(newPix);
                         }
                     }
                 }
@@ -337,13 +332,13 @@ export class GopixCustomElement {
                 this.addNewPixes(newPixes);
                 this.killIsolatedOponentPixes();
                 if (this.killEnclosedSingleOponent()) {
-                    console.log(this.oponent, 'no pieces');
+                    // console.log(this.oponent, 'no pieces');
                     this.game = 'off';
                     this.ea.publish('game', {'type' : 'win', 'player' : this.toplay});
                 }
                 let pixCount = this.countPixes(this.oponent);
                 if (pixCount.length === 0) {
-                    console.log(this.oponent, 'no pieces');
+                    // console.log(this.oponent, 'no pieces');
                     this.game = 'off';
                     this.ea.publish('game', {'type' : 'win', 'player' : this.toplay});
                 }
@@ -352,7 +347,7 @@ export class GopixCustomElement {
                 this.ea.publish('game', {'type' : 'illegal'});
             }
         } else {
-            console.log(this.toplay, 'no more moves');
+            // console.log(this.toplay, 'no more moves');
             this.ea.publish('game', {'type' : 'win', 'player' : this.oponent});
         }
     }

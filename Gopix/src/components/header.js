@@ -16,7 +16,7 @@ export class HeaderCustomElement {
         this.ea.subscribe('game', response => {
             switch (response.type) {
                 case 'illegal':
-                    this.setTitleText(this.getTitleData('illegal move'));
+                    this.setTitleText(this.getTitleData('no can do'));
                     break;
                 case 'win':
                     this.keepMoving = false;
@@ -132,7 +132,7 @@ export class HeaderCustomElement {
             },
             {
                 'name': 'w',
-                'data': [28, 7, 2, 7, 28]
+                'data': [16, 28, 7, 2, 7, 28]
             },
             {
                 'name': 'x',

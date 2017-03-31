@@ -1,0 +1,14 @@
+<template>
+    <require from="components/footer.css"></require>
+    <button if.bind="showHelpButton" click.delegate="toggleHelp()">?</button>
+    <button if.bind="showHideButton" click.delegate="toggleHelp()">&times;</button>
+    <div if.bind="showHelpText" class="helpTekst">
+        <ul>
+            <li>Move with the arrow keys or by swiping</li>
+            <li>Defeat your oponent</li>
+            <li>Attacker wins from defender of equal size or smaller</li>
+            <li>Separated groups of pieces are lost</li>
+            <li>Last single enclosed piece is lost</li>
+        </ul>
+    </div>
+</template>
