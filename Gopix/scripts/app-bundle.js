@@ -347,13 +347,6 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             this.neighbours = [[0, -1], [1, 0], [0, 1], [-1, 0]];
         }
 
-        GopixCustomElement.prototype.pixStyle = function pixStyle(pix) {
-            var blackCompensation = pix.name === 'black' ? 1 : 0;
-            return {
-                'borderWidth': 15 - pix.strength - blackCompensation + 'px'
-            };
-        };
-
         GopixCustomElement.prototype.move = function move(direction) {
             switch (direction) {
                 case 'left':
@@ -373,10 +366,13 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         };
 
         GopixCustomElement.prototype.switchSides = function switchSides() {
-            this.addFruit();
             var _ref = [this.toplay, this.oponent];
             this.oponent = _ref[0];
             this.toplay = _ref[1];
+        };
+
+        GopixCustomElement.prototype.onBoard = function onBoard(xy) {
+            return xy[0] >= 0 && xy[1] >= 0 && xy[0] < this.maxX && xy[1] < this.maxY;
         };
 
         GopixCustomElement.prototype.getNewPixes = function getNewPixes(dx, dy) {
@@ -387,7 +383,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     var thisPix = this.gopix[y][x];
                     var newX = x + dx;
                     var newY = y + dy;
-                    if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
+                    if (this.onBoard([newX, newY])) {
                         var targetPix = this.gopix[newY][newX];
                         if (thisPix.name === this.toplay) {
                             if (targetPix.name !== this.toplay) {
@@ -412,17 +408,45 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             return newPixes;
         };
 
-        GopixCustomElement.prototype.copyPix = function copyPix(pix) {
+        GopixCustomElement.prototype.pixStyle = function pixStyle(pix) {
+            var blackCompensation = pix.name === 'black' ? 1 : 0;
             return {
-                'name': pix.name,
-                'strength': pix.strength
+                'borderWidth': 15 - pix.strength - blackCompensation + 'px'
             };
+        };
+
+        GopixCustomElement.prototype.copyPix = function copyPix(pix) {
+            return JSON.parse(JSON.stringify(pix));
         };
 
         GopixCustomElement.prototype.updatePix = function updatePix($pix, pix) {
             $pix.css(this.pixStyle(pix));
-            $pix.attr('data-strength', pix.strength);
-            $pix.text(pix.strength);
+            $pix.attr('data-strength', pix.strength || 0);
+            $pix.removeClass().addClass(pix.name + ' pix');
+        };
+
+        GopixCustomElement.prototype.updateScreen = function updateScreen() {
+            for (var y = 0; y < this.gopix.length; y++) {
+                for (var x = 0; x < this.gopix.length; x++) {
+                    var thisPix = this.gopix[y][x];
+                    var $row = (0, _jquery2.default)((0, _jquery2.default)('.row')[y]);
+                    var $pix = (0, _jquery2.default)($row.children('.pix')[x]);
+                    this.updatePix($pix, thisPix);
+                }
+            }
+        };
+
+        GopixCustomElement.prototype.getPixes = function getPixes(type) {
+            var self = this;
+            var total = [];
+            self.gopix.forEach(function (row) {
+                row.forEach(function (pixel) {
+                    if (pixel.name === type) {
+                        total.push([row.indexOf(pixel), self.gopix.indexOf(row)]);
+                    }
+                });
+            });
+            return total;
         };
 
         GopixCustomElement.prototype.weakenPixes = function weakenPixes() {
@@ -430,15 +454,11 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 for (var x = 0; x < this.maxX; x++) {
                     var thisPix = this.copyPix(this.gopix[y][x]);
                     if (thisPix.name === this.toplay) {
-                        var $row = (0, _jquery2.default)((0, _jquery2.default)('.row')[y]);
-                        var $pix = (0, _jquery2.default)($row.children('.pix')[x]);
-                        if (thisPix.strength > 0) {
+                        if (thisPix.strength) {
                             thisPix.strength--;
-                            this.updatePix($pix, thisPix);
-                        } else {
+                        }
+                        if (thisPix.strength === 0) {
                             thisPix.name = 'empty';
-                            $pix.removeClass('black white').addClass('empty');
-                            $pix.attr('data-strength', 0);
                         }
                     }
                     this.gopix[y][x] = this.copyPix(thisPix);
@@ -453,10 +473,6 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     'strength': newPixes[i][2]
                 };
                 this.gopix[newPixes[i][1]][newPixes[i][0]] = this.copyPix(newPix);
-                var $row = (0, _jquery2.default)((0, _jquery2.default)('.row')[newPixes[i][1]]);
-                var $pix = (0, _jquery2.default)($row.children('.pix')[newPixes[i][0]]);
-                $pix.removeClass('empty white black').addClass(this.toplay);
-                this.updatePix($pix, newPix);
             }
         };
 
@@ -467,27 +483,14 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 'strength': 0,
                 'energy': Math.ceil(5 * Math.random())
             };
-            var y = Math.floor(this.gopix.length * Math.random());
-            var x = Math.floor(this.gopix[0].length * Math.random());
-            this.gopix[y][x] = Object.assign({}, this.gopix[y][x], fruit);
-            console.log(fruit);
-        };
-
-        GopixCustomElement.prototype.countPixes = function countPixes(player) {
-            var self = this;
-            var total = [];
-            self.gopix.forEach(function (row) {
-                row.forEach(function (pixel) {
-                    if (pixel.name === player) {
-                        total.push([row.indexOf(pixel), self.gopix.indexOf(row)]);
-                    }
-                });
-            });
-            return total;
-        };
-
-        GopixCustomElement.prototype.withinBounds = function withinBounds(xy) {
-            return xy[0] >= 0 && xy[1] >= 0 && xy[0] < this.maxX && xy[1] < this.maxY;
+            var fruitCount = this.getPixes(fruit.name).length;
+            if (fruitCount < 3) {
+                var y = Math.floor(this.gopix.length * Math.random());
+                var x = Math.floor(this.gopix[0].length * Math.random());
+                if (this.gopix[y][x].name == 'empty') {
+                    this.gopix[y][x] = this.copyPix(fruit);
+                }
+            }
         };
 
         GopixCustomElement.prototype.strength = function strength(area) {
@@ -535,13 +538,11 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
 
             function getAdjacentArea(startPos) {
                 var area = [startPos];
-                (0, _jquery2.default)('.' + self.toplay).removeClass('red');
-                (0, _jquery2.default)('.empty').removeClass('red');
 
                 function countAdjacentPixes(startPos) {
                     self.neighbours.forEach(function (neighbour) {
                         var xy = [startPos[0] + neighbour[0], startPos[1] + neighbour[1]];
-                        if (self.withinBounds(xy)) {
+                        if (self.onBoard(xy)) {
                             var thisPix = self.gopix[xy[1]][xy[0]];
                             if (thisPix.name === self.oponent && !thisPix.marked) {
                                 markPixel(xy);
@@ -555,13 +556,12 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 markPixel(startPos);
                 countAdjacentPixes(startPos);
 
-
                 return area;
             }
 
             function getAreas() {
                 var areas = [];
-                var totalOponentPixes = self.countPixes(self.oponent);
+                var totalOponentPixes = self.getPixes(self.oponent);
                 var firstOponentPix = findFirstOponentPix();
                 if (firstOponentPix[0] > -1) {
                     var area = getAdjacentArea(firstOponentPix);
@@ -581,9 +581,6 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                 area.forEach(function (xy) {
                     self.gopix[xy[1]][xy[0]].name = 'empty';
                     self.gopix[xy[1]][xy[0]].strength = 0;
-                    var $row = (0, _jquery2.default)((0, _jquery2.default)('.row')[xy[1]]);
-                    var $pix = (0, _jquery2.default)($row.children('.pix')[xy[0]]);
-                    $pix.removeClass('black white').addClass('empty');
                 });
             }
 
@@ -612,12 +609,12 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
             }
         };
 
-        GopixCustomElement.prototype.surrounded = function surrounded(pixel) {
+        GopixCustomElement.prototype.surrounders = function surrounders(pixel) {
             var self = this;
             var surrounders = 0;
             self.neighbours.forEach(function (neighbour) {
                 var xy = [pixel[0] + neighbour[0], pixel[1] + neighbour[1]];
-                if (self.withinBounds(xy)) {
+                if (self.onBoard(xy)) {
                     var color = self.gopix[xy[1]][xy[0]].name;
                     if (color === self.toplay) {
                         surrounders++;
@@ -630,9 +627,9 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         };
 
         GopixCustomElement.prototype.killEnclosedSingleOponent = function killEnclosedSingleOponent() {
-            var pixels = this.countPixes(this.oponent);
+            var pixels = this.getPixes(this.oponent);
             if (pixels.length === 1) {
-                if (this.surrounded(pixels[0]) > 3) {
+                if (this.surrounders(pixels[0]) > 3) {
                     console.log('yo lost');
                     return true;
                 }
@@ -641,12 +638,17 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         };
 
         GopixCustomElement.prototype.canMove = function canMove() {
-            return true;
+            var self = this;
+            var openAdjacentSpaces = 0;
+            self.neighbours.forEach(function (direction) {
+                openAdjacentSpaces += self.getNewPixes(direction[0], direction[1]).length;
+            });
+            return openAdjacentSpaces > 0;
         };
 
         GopixCustomElement.prototype.step = function step(dx, dy) {
             console.clear();
-            if (this.canMove(this.toplay)) {
+            if (this.canMove()) {
                 var newPixes = this.getNewPixes(dx, dy);
                 if (newPixes.length) {
                     this.weakenPixes();
@@ -659,7 +661,7 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                             'player': this.toplay
                         });
                     }
-                    var pixCount = this.countPixes(this.oponent);
+                    var pixCount = this.getPixes(this.oponent);
                     if (pixCount.length === 0) {
                         this.game = 'off';
                         this.ea.publish('game', {
@@ -680,6 +682,8 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
                     'player': this.oponent
                 });
             }
+            this.addFruit();
+            this.updateScreen();
         };
 
         GopixCustomElement.prototype.logArray = function logArray(str, arr) {
@@ -691,7 +695,6 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         };
 
         GopixCustomElement.prototype.emptyBoard = function emptyBoard() {
-            (0, _jquery2.default)('.pix').removeClass('white black');
             this.gopix = [];
             var newPix = {
                 "name": "empty",
@@ -706,33 +709,18 @@ define('components/gopix',['exports', 'aurelia-framework', 'aurelia-event-aggreg
         };
 
         GopixCustomElement.prototype.reset = function reset() {
+            var newPixes = [[3, 3, this.playerStrength['white']]];
             this.emptyBoard();
+            this.game = 'on';
             if (this.toplay === 'black') {
                 this.switchSides();
             }
-            this.gopix[3][3] = {
-                "name": "white",
-                "strength": this.playerStrength['white']
-            };
-            this.gopix[7][7] = {
-                "name": "black",
-                "strength": this.playerStrength['black']
-            };
-            this.setup();
-        };
-
-        GopixCustomElement.prototype.setup = function setup() {
-            this.game = 'on';
-            var newPixes = [[3, 3, 5]];
             this.addNewPixes(newPixes);
             this.switchSides();
-            newPixes = [[7, 7, 5]];
+            newPixes = [[7, 7, this.playerStrength['black']]];
             this.addNewPixes(newPixes);
             this.switchSides();
-        };
-
-        GopixCustomElement.prototype.attached = function attached() {
-            this.reset();
+            this.updateScreen();
         };
 
         return GopixCustomElement;
@@ -1055,10 +1043,10 @@ define('text!app.css', ['module'], function(module) { module.exports = "* {\n   
 define('text!components/board.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header\"></require>\n    <require from=\"components/gopix\"></require>\n    <require from=\"components/footer\"></require>\n\t<div id=\"container\">\n        <header></header>\n\t\t<gopix id=\"gopix\"></gopix>\n        <footer></footer>\n\t</div>\n</template>\n"; });
 define('text!reset.css', ['module'], function(module) { module.exports = "/* http://meyerweb.com/eric/tools/css/reset/ \n   v2.0 | 20110126\n   License: none (public domain)\n*/\n\nhtml, body, div, span, applet, object, iframe,\nh1, h2, h3, h4, h5, h6, p, blockquote, pre,\na, abbr, acronym, address, big, cite, code,\ndel, dfn, em, img, ins, kbd, q, s, samp,\nsmall, strike, strong, sub, sup, tt, var,\nb, u, i, center,\ndl, dt, dd, ol, ul, li,\nfieldset, form, label, legend,\ntable, caption, tbody, tfoot, thead, tr, th, td,\narticle, aside, canvas, details, embed, \nfigure, figcaption, footer, header, hgroup, \nmenu, nav, output, ruby, section, summary,\ntime, mark, audio, video {\n\tmargin: 0;\n\tpadding: 0;\n\tborder: 0;\n\tfont-size: 100%;\n\tfont: inherit;\n\tvertical-align: baseline;\n}\n/* HTML5 display-role reset for older browsers */\narticle, aside, details, figcaption, figure, \nfooter, header, hgroup, menu, nav, section {\n\tdisplay: block;\n}\nbody {\n\tline-height: 1;\n}\nol, ul {\n\tlist-style: none;\n}\nblockquote, q {\n\tquotes: none;\n}\nblockquote:before, blockquote:after,\nq:before, q:after {\n\tcontent: '';\n\tcontent: none;\n}\ntable {\n\tborder-collapse: collapse;\n\tborder-spacing: 0;\n}"; });
 define('text!components/board.css', ['module'], function(module) { module.exports = ""; });
-define('text!components/footer.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/footer.css\"></require>\n    <button if.bind=\"showHelpButton\" click.delegate=\"toggleHelp()\">?</button>\n    <button if.bind=\"showHideButton\" click.delegate=\"toggleHelp()\">&times;</button>\n    <div if.bind=\"showHelpText\" class=\"helpTekst\">\n        <ul>\n            <li>Click or tap the board to start game</li>\n            <li>Move by using the arrow keys or by swiping</li>\n            <li>Defeat your oponent</li>\n            <li>Attacker wins from defender of equal size or smaller</li>\n            <li>Separated groups of pieces are lost</li>\n            <li>Last single enclosed piece is lost</li>\n        </ul>\n    </div>\n</template>\n"; });
-define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    font-family: 'Trebuchet MS', Roboto, sans-serif;\n    align-self: stretch;\n}\n\nbutton {\n    float: right;\n    width: 46px;\n    height: 46px;\n    background-color: transparent;\n    font-size: 30px;\n    line-height: 46px;\n    color: #fff;\n    text-shadow: 0 0 1px #000;\n    cursor: pointer;\n}\n\n.helpTekst {\n    font-weight: bold;\n    font-size: 18px;\n    line-height: 24px;\n    color: #fff;\n    text-shadow: 0 0 1px #000;\n    margin-top: 30px;\n}\n\n.helpTekst ul {\n    list-style-type: disc;\n    margin-left: 30px;\n}\n\n:focus{\n    outline: 0;\n}\n"; });
+define('text!components/footer.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/footer.css\"></require>\n    <button if.bind=\"showHelpButton\" click.delegate=\"toggleHelp()\">?</button>\n    <button if.bind=\"showHideButton\" click.delegate=\"toggleHelp()\">&times;</button>\n    <div if.bind=\"showHelpText\" class=\"helpTekst\">\n        <ul>\n            <li>Click or tap the board to start game</li>\n            <li>Move by using the arrow keys or by swiping</li>\n            <li>Catch oponent or lemons to gain strength</li>\n            <li>Larger attacker wins from defender</li>\n            <li>Separated groups of pieces are lost</li>\n            <li>Last single enclosed piece is lost</li>\n        </ul>\n    </div>\n</template>\n"; });
+define('text!components/footer.css', ['module'], function(module) { module.exports = "footer {\n    font-family: 'Trebuchet MS', Roboto, sans-serif;\n    align-self: stretch;\n}\n\nbutton {\n    float: right;\n    width: 46px;\n    height: 46px;\n    background-color: transparent;\n    font-size: 30px;\n    line-height: 46px;\n    color: #fff;\n    text-shadow: 0 0 1px #000;\n    cursor: pointer;\n}\n\n.helpTekst {\n    font-weight: bold;\n    font-size: 21px;\n    line-height: 27px;\n    color: #fff;\n    text-shadow: 0 0 1px #000;\n    margin-top: 30px;\n}\n\n.helpTekst ul {\n    list-style-type: disc;\n    margin-left: 30px;\n}\n\n:focus{\n    outline: 0;\n}\n"; });
 define('text!components/gopix.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/start\"></require>\n    <require from=\"components/gopix.css\"></require>\n    <div class=\"row\" repeat.for = \"row of gopix\">\n        <span\n            repeat.for=\"pix of row\"\n            class.one-time=\"pix.name\"\n            style.one-time=\"pixStyle(pix)\"\n            class=\"pix\"></span>\n    </div>\n    <start class=\"startButton\"></start>\n</template>\n"; });
-define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix {\n    position: relative;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    width: 526px;\n    height: 526px;\n}\n\n.row {\n    flex: 0 0 46px;\n    display: flex;\n    justify-content: space-between;\n}\n\n.pix {\n    font-size: 8px;\n    width: 46px;\n    height: 46px;\n    max-width: 46px;\n    max-height: 46px;\n    box-sizing: border-box;\n    border-radius: 3px;\n    border: 13px solid #3d89d9;\n    background-color: #3d89d9;\n    transition: all .2s;\n}\n\n.pix.red {\n    border: 1px solid red;\n}\n\n.pix::before {\n    content: '';\n    display: block;\n    box-sizing: border-box;\n    border-radius: 25px;\n    border: 2px solid transparent;\n    transition: all .2s;\n    position: relative;\n}\n\n.pix:not(.empty)::before {\n    width: 100%;\n    height: 100%;\n}\n\n.pix.black:before {\n    border-color: rgba(0, 0, 0, 0.6);\n    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);\n}\n\n.pix.white:before {\n    border-width: 3px;\n    border-color: rgba(255, 255, 255, 0.5);\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);\n}\n\n.pix.lemon {\n    border-width: 14px;\n}\n\n.pix.lemon::before {\n    -webkit-transform: rotate(45deg);\n    -ms-transform: rotate(45deg);\n    transform: rotate(45deg);\n    border-width: 0;\n    border-color: yellow;\n    border-radius: 15px 6px 15px 3px;\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset -6px -4px 15px #E3B32D;\n    background-color: lightgoldenrodyellow;\n}\n"; });
+define('text!components/gopix.css', ['module'], function(module) { module.exports = "#gopix {\n    position: relative;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    width: 526px;\n    height: 526px;\n}\n\n.row {\n    flex: 0 0 46px;\n    display: flex;\n    justify-content: space-between;\n}\n\n.pix {\n    font-size: 8px;\n\tcolor: #fff;\n    width: 46px;\n    height: 46px;\n    max-width: 46px;\n    max-height: 46px;\n    box-sizing: border-box;\n    border-radius: 3px;\n    border: 13px solid #3d89d9;\n    background-color: #3d89d9;\n    transition: all .2s;\n}\n\n.pix.red {\n    border: 1px solid red;\n}\n\n.pix::before {\n    content: '';\n    display: block;\n    box-sizing: border-box;\n    border-radius: 25px;\n    border: 2px solid transparent;\n    transition: all .2s;\n    position: relative;\n}\n\n.pix:not(.empty)::before {\n    width: 100%;\n    height: 100%;\n}\n\n.pix.black:before {\n    border-color: rgba(0, 0, 0, 0.6);\n    box-shadow: 0 0 7px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(0, 0, 0, 0.7);\n}\n\n.pix.white:before {\n    border-width: 3px;\n    border-color: rgba(255, 255, 255, 0.5);\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);\n}\n\n.pix.lemon {\n    border-width: 14px;\n}\n\n.pix.lemon::before {\n    -webkit-transform: rotate(55deg);\n    -ms-transform: rotate(55deg);\n    transform: rotate(55deg);\n    border-width: 0;\n    border-color: yellow;\n    border-radius: 15px 6px 15px 3px;\n    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset -6px -4px 15px #E3B32D;\n    background-color: lightgoldenrodyellow;\n}\n"; });
 define('text!components/header.html', ['module'], function(module) { module.exports = "<template>\n    <require from=\"components/header.css\"></require>\n    <div class=\"titleBar\" class.bind=\"color\">\n        <div class=\"pixelCol\" repeat.for=\"col of titleData\">\n            <div class=\"pixel\" repeat.for=\"pixel of col\" class.bind=\"pixel == 1 ? 'on' : 'off'\"></div>\n        </div>\n    </div>\n</template>\n"; });
 define('text!components/header.css', ['module'], function(module) { module.exports = ".titleBar {\n    width: 527px;\n    height: 39px;\n    margin: 30px 0;\n    display: flex;\n}\n\n.pixelCol {\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n\n.pixelCol+.pixelCol {\n    margin-left: 1px;\n}\n\n.pixel {\n    width: 7px;\n    height: 7px;\n    border-radius: 4px;\n    transition: all 1s;\n}\n\n.pixel:not(.off) {\n    box-shadow: 0 0 2px 0 rgba(0, 0, 0, .5);\n}\n\n.white .pixel.on {\n    background-color: #fff;\n}\n\n.black .pixel.on {\n    background-color: #000;\n}\n\n.pixel.off {\n    background-color: transparent;\n}\n"; });
 define('text!components/start.html', ['module'], function(module) { module.exports = "<template class.bind=\"showStartButton ? '' : 'hide'\">\n    <require from=\"components/start.css\"></require>\n    <button click.trigger=\"startGame()\" aria-hidden=\"true\"></button>\n</template>\n"; });
