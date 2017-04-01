@@ -1,5 +1,5 @@
 #gopix {
-	position: relative;
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -14,6 +14,7 @@
 }
 
 .pix {
+    font-size: 8px;
     width: 46px;
     height: 46px;
     max-width: 46px;
@@ -24,11 +25,12 @@
     background-color: #3d89d9;
     transition: all .2s;
 }
-.pix.red{
+
+.pix.red {
     border: 1px solid red;
 }
 
-.pix:before {
+.pix::before {
     content: '';
     display: block;
     box-sizing: border-box;
@@ -38,7 +40,7 @@
     position: relative;
 }
 
-.pix:not(.empty):before {
+.pix:not(.empty)::before {
     width: 100%;
     height: 100%;
 }
@@ -52,4 +54,19 @@
     border-width: 3px;
     border-color: rgba(255, 255, 255, 0.5);
     box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset 0 0 20px 0px rgba(255, 255, 255, 0.7);
+}
+
+.pix.lemon {
+    border-width: 14px;
+}
+
+.pix.lemon::before {
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+    border-width: 0;
+    border-color: yellow;
+    border-radius: 15px 6px 15px 3px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1), inset -6px -4px 15px #E3B32D;
+    background-color: lightgoldenrodyellow;
 }

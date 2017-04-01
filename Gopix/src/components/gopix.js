@@ -45,7 +45,12 @@ export class GopixCustomElement {
 
         this.gopix = [];
 
-        this.neighbours = [[0, -1],[1, 0],[0, 1],[-1, 0]];
+        this.neighbours = [
+            [0, -1],
+            [1, 0],
+            [0, 1],
+            [-1, 0]
+        ];
 
     }
 
@@ -74,7 +79,8 @@ export class GopixCustomElement {
         }
     }
 
-    turn() {
+    switchSides() {
+        this.addFruit();
         [this.oponent, this.toplay] = [this.toplay, this.oponent];
     }
 
@@ -88,12 +94,22 @@ export class GopixCustomElement {
                 var newY = y + dy;
                 if (!(newX < 0 || newX >= this.maxX || newY < 0 || newY >= this.maxY)) {
                     let targetPix = this.gopix[newY][newX];
-                    if (thisPix.name === this.toplay && targetPix.name !== this.toplay) {
-                        if (thisPix.strength >= targetPix.strength) {
-                            let newStrength = thisPix.strength + targetPix.strength + this.gainStrength;
-                            newStrength = newStrength > this.maxStrength ? this.maxStrength : newStrength;
-                            let newPix = [newX, newY, newStrength];
-                            newPixes.push(newPix);
+                    if (thisPix.name === this.toplay) {
+                        if (targetPix.name !== this.toplay) {
+                            if (targetPix.name == 'lemon') {
+                                let newStrength = thisPix.strength + targetPix.energy + this.gainStrength;
+                                newStrength = newStrength > this.maxStrength ? this.maxStrength : newStrength;
+                                let newPix = [newX, newY, newStrength];
+                                newPixes.push(newPix);
+                            } else {
+                                if (thisPix.strength > targetPix.strength) {
+                                    let newStrength = thisPix.strength + targetPix.strength + this.gainStrength;
+                                    newStrength = newStrength > this.maxStrength ? this.maxStrength : newStrength;
+                                    let newPix = [newX, newY, newStrength];
+                                    newPixes.push(newPix);
+                                }
+                            }
+
                         }
                     }
                 }
@@ -109,6 +125,12 @@ export class GopixCustomElement {
         }
     }
 
+    updatePix($pix, pix) {
+        $pix.css(this.pixStyle(pix));
+        $pix.attr('data-strength', pix.strength);
+        $pix.text(pix.strength);
+    }
+
     weakenPixes() {
         // prevent copying by reference
         for (let y = 0; y < this.maxY; y++) {
@@ -119,10 +141,11 @@ export class GopixCustomElement {
                     let $pix = $($row.children('.pix')[x]);
                     if (thisPix.strength > 0) {
                         thisPix.strength--;
-                        $pix.css(this.pixStyle(thisPix));
+                        this.updatePix($pix, thisPix);
                     } else {
                         thisPix.name = 'empty';
                         $pix.removeClass('black white').addClass('empty');
+                        $pix.attr('data-strength', 0);
                     }
                 }
                 this.gopix[y][x] = this.copyPix(thisPix);
@@ -140,8 +163,21 @@ export class GopixCustomElement {
             let $row = $($('.row')[newPixes[i][1]]);
             let $pix = $($row.children('.pix')[newPixes[i][0]]);
             $pix.removeClass('empty white black').addClass(this.toplay);
-            $pix.css(this.pixStyle(newPix));
+            this.updatePix($pix, newPix);
         }
+    }
+
+    addFruit() {
+        let maxEnergy = 5;
+        let fruit = {
+            'name': 'lemon',
+            'strength': 0,
+            'energy': Math.ceil(5 * Math.random())
+        };
+        let y = Math.floor(this.gopix.length * Math.random());
+        let x = Math.floor(this.gopix[0].length * Math.random());
+        this.gopix[y][x] = Object.assign({}, this.gopix[y][x], fruit);
+        console.log(fruit);
     }
 
     countPixes(player) {
@@ -158,7 +194,7 @@ export class GopixCustomElement {
     }
 
     withinBounds(xy) {
-        return xy[0]>=0 && xy[1]>=0 && xy[0]<this.maxX && xy[1]<this.maxY;
+        return xy[0] >= 0 && xy[1] >= 0 && xy[0] < this.maxX && xy[1] < this.maxY;
     }
 
     strength(area) {
@@ -209,11 +245,11 @@ export class GopixCustomElement {
 
         function getAdjacentArea(startPos) {
             let area = [startPos];
-            $('.'+self.toplay).removeClass('red');
+            $('.' + self.toplay).removeClass('red');
             $('.empty').removeClass('red');
 
             function countAdjacentPixes(startPos) {
-                self.neighbours.forEach(function (neighbour) {
+                self.neighbours.forEach(function(neighbour) {
                     let xy = [startPos[0] + neighbour[0], startPos[1] + neighbour[1]];
                     if (self.withinBounds(xy)) {
                         let thisPix = self.gopix[xy[1]][xy[0]];
@@ -267,8 +303,7 @@ export class GopixCustomElement {
             while (areas.length > 1) {
                 if (areas[i].length < areas[smallestArea].length) {
                     smallestArea = i;
-                }
-                else if (areas[i].length === areas[smallestArea].length) {
+                } else if (areas[i].length === areas[smallestArea].length) {
                     // You can't call the same function in the if comparison CHECK!!
                     let smallestAreaStrength = self.strength(areas[smallestArea]);
                     let thisAreaStrength = self.strength(areas[i]);
@@ -292,7 +327,7 @@ export class GopixCustomElement {
     surrounded(pixel) {
         let self = this;
         let surrounders = 0;
-        self.neighbours.forEach(function(neighbour){
+        self.neighbours.forEach(function(neighbour) {
             let xy = [pixel[0] + neighbour[0], pixel[1] + neighbour[1]];
             if (self.withinBounds(xy)) {
                 let color = self.gopix[xy[1]][xy[0]].name;
@@ -333,22 +368,33 @@ export class GopixCustomElement {
                 if (this.killEnclosedSingleOponent()) {
                     // console.log(this.oponent, 'no pieces');
                     this.game = 'off';
-                    this.ea.publish('game', {'type' : 'win', 'player' : this.toplay});
+                    this.ea.publish('game', {
+                        'type': 'win',
+                        'player': this.toplay
+                    });
                 }
                 let pixCount = this.countPixes(this.oponent);
                 if (pixCount.length === 0) {
                     // console.log(this.oponent, 'no pieces');
                     this.game = 'off';
-                    this.ea.publish('game', {'type' : 'win', 'player' : this.toplay});
+                    this.ea.publish('game', {
+                        'type': 'win',
+                        'player': this.toplay
+                    });
                 }
-                this.turn();
+                this.switchSides();
                 this.ea.publish('player', this.toplay);
             } else {
-                this.ea.publish('game', {'type' : 'illegal'});
+                this.ea.publish('game', {
+                    'type': 'illegal'
+                });
             }
         } else {
             // console.log(this.toplay, 'no more moves');
-            this.ea.publish('game', {'type' : 'win', 'player' : this.oponent});
+            this.ea.publish('game', {
+                'type': 'win',
+                'player': this.oponent
+            });
         }
     }
 
@@ -379,7 +425,7 @@ export class GopixCustomElement {
     reset() {
         this.emptyBoard();
         if (this.toplay === 'black') {
-            this.turn();
+            this.switchSides();
         }
         this.gopix[3][3] = {
             "name": "white",
@@ -398,12 +444,12 @@ export class GopixCustomElement {
             [3, 3, 5]
         ];
         this.addNewPixes(newPixes);
-        this.turn();
+        this.switchSides();
         newPixes = [
             [7, 7, 5]
         ];
         this.addNewPixes(newPixes);
-        this.turn();
+        this.switchSides();
     }
 
     attached() {
