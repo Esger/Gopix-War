@@ -1,17 +1,25 @@
+:focus {
+    outline: 0;
+}
+
 footer {
     font-family: 'Trebuchet MS', Roboto, sans-serif;
+    flex: 1 1 50vh;
     align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-shadow: 0 0 1px #000;
 }
 
 button {
-    float: right;
+    align-self: flex-end;
     width: 46px;
     height: 46px;
     background-color: transparent;
     font-size: 30px;
     line-height: 46px;
     color: #fff;
-    text-shadow: 0 0 1px #000;
     cursor: pointer;
 }
 
@@ -29,6 +37,11 @@ button {
     margin-left: 30px;
 }
 
-:focus{
-    outline: 0;
+.ashWareLink {
+    height: 46px;
+    line-height: 46px;
+}
+
+.ashWareLink a {
+    color: #fff;
 }

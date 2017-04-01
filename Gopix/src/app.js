@@ -25,7 +25,7 @@ export class App {
 
             }
         });
-        this.message = 'Gopix Raiders';
+        this.message = 'Gopix War';
         this.keys = {
             'left': 37,
             'up': 38,

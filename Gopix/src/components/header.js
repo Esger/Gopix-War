@@ -36,7 +36,7 @@ export class HeaderCustomElement {
                 this.color = response;
             }
         });
-        this.text = 'gopix raider';
+        this.text = 'gopix war';
         this.titleData = [];
         this.characters = [{
                 'name': ' ',
