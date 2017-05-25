@@ -146,8 +146,8 @@ export class GopixCustomElement {
     getPixes(type) {
         let self = this;
         let total = [];
-        self.gopix.forEach(function(row) {
-            row.forEach(function(pixel) {
+        self.gopix.forEach(function (row) {
+            row.forEach(function (pixel) {
                 if (pixel.name === type) {
                     total.push([row.indexOf(pixel), self.gopix.indexOf(row)])
                 }
@@ -186,13 +186,14 @@ export class GopixCustomElement {
 
     addFruit() {
         let maxEnergy = 5;
+        let maxFruit = 90;
         let fruit = {
             'name': 'lemon',
             'strength': 0,
             'energy': Math.ceil(5 * Math.random())
         };
         let fruitCount = this.getPixes(fruit.name).length;
-        if (fruitCount < 3) {
+        if (fruitCount < maxFruit) {
             let y = Math.floor(this.gopix.length * Math.random());
             let x = Math.floor(this.gopix[0].length * Math.random());
             if (this.gopix[y][x].name == 'empty') {
@@ -204,7 +205,7 @@ export class GopixCustomElement {
     strength(area) {
         let self = this;
         let strength = 0;
-        area.forEach(function(xy) {
+        area.forEach(function (xy) {
             strength += self.gopix[xy[1]][xy[0]].strength;
         });
         return strength;
@@ -214,8 +215,8 @@ export class GopixCustomElement {
         let self = this;
 
         function clearMarks() {
-            self.gopix.forEach(function(row) {
-                row.forEach(function(pixel) {
+            self.gopix.forEach(function (row) {
+                row.forEach(function (pixel) {
                     pixel.marked = false;
                 })
             });
@@ -248,7 +249,7 @@ export class GopixCustomElement {
             let area = [startPos];
 
             function countAdjacentPixes(startPos) {
-                self.neighbours.forEach(function(neighbour) {
+                self.neighbours.forEach(function (neighbour) {
                     let xy = [startPos[0] + neighbour[0], startPos[1] + neighbour[1]];
                     if (self.onBoard(xy)) {
                         let thisPix = self.gopix[xy[1]][xy[0]];
@@ -286,7 +287,7 @@ export class GopixCustomElement {
         }
 
         function killArea(area) {
-            area.forEach(function(xy) {
+            area.forEach(function (xy) {
                 self.gopix[xy[1]][xy[0]].name = 'empty';
                 self.gopix[xy[1]][xy[0]].strength = 0;
             });
@@ -322,7 +323,7 @@ export class GopixCustomElement {
     surrounders(pixel) {
         let self = this;
         let surrounders = 0;
-        self.neighbours.forEach(function(neighbour) {
+        self.neighbours.forEach(function (neighbour) {
             let xy = [pixel[0] + neighbour[0], pixel[1] + neighbour[1]];
             if (self.onBoard(xy)) {
                 let color = self.gopix[xy[1]][xy[0]].name;
@@ -350,8 +351,8 @@ export class GopixCustomElement {
     canMove() {
         let self = this;
         let openAdjacentSpaces = 0;
-        self.neighbours.forEach(function(direction){
-            openAdjacentSpaces += self.getNewPixes(direction[0],direction[1]).length;
+        self.neighbours.forEach(function (direction) {
+            openAdjacentSpaces += self.getNewPixes(direction[0], direction[1]).length;
         });
         return openAdjacentSpaces > 0;
     }
